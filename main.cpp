@@ -1,8 +1,8 @@
 #include "interupt/interupt.h"
 #include<cassert>
 int main() {
-	init_interupt();
-	InteruptMask mask{};
+	//init_interupt();
+	//InteruptMask mask{};
 	//mask.set(InteruptType::ERROR);
 	//assert(mask.is_set(InteruptType::ERROR) == false);
 	//mask.set(InteruptType::TIMER).set(InteruptType::SOFTWARE).set(InteruptType::EXTERNAL_1);
