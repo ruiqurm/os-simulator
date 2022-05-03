@@ -139,7 +139,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="interupt\heap.h" />
     <ClInclude Include="interupt\interupt.h" />
   </ItemGroup>
   <ItemGroup>

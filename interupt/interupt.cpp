@@ -8,7 +8,6 @@
 using std::vector;
 using std::uint16_t;
 using std::priority_queue;
-const auto InteruptVectorTableSize = 32;
 
 mutex mu;
 std::atomic<uint16_t> valid;
@@ -22,15 +21,7 @@ struct InteruptVector {
 };
 
 InteruptVector InteruptVectorTable[InteruptVectorTableSize];
-struct Interupt {
-	InteruptType type;
-	int device_id;
-	int64_t value;
-	int64_t time;
-	bool operator < (const Interupt& b)const;
-	bool operator > (const Interupt& b)const;
-	bool is_blocking() const;
-};
+
 
 bool Interupt::operator < (const Interupt& b)const {
 	if (type == b.type) {
@@ -175,7 +166,7 @@ void handle_interupt() {
 	// 将会一次处理完全部
 
 	while (!queue.empty()) {
-		auto top = queue.top();
+		const auto &top = queue.top();
 		if (top.is_blocking()) {
 			should_delay.push_back(top);
 			queue.pop();
@@ -207,4 +198,29 @@ void do_nothing(InteruptType t, int a, int64_t b) {
 }
 void panic(InteruptType, int, int64_t) {
 	throw "panic";
+}
+
+
+InteruptSnapshot get_interupt_snapshot() {
+	disable_timer();
+	mu.lock();
+	InteruptSnapshot snapshot{};
+	while (!queue.empty()) {
+		snapshot.interupts.push_back(queue.top());
+		queue.pop();
+	}
+	// re-fill the queue
+	for (auto& v : snapshot.interupts) {
+		queue.push(v);
+	}
+	memcpy(snapshot.interuptVectorTable, InteruptVectorTable, sizeof(InteruptVectorTable));
+	memset(snapshot.valid, false, sizeof(snapshot.valid));
+	InteruptValid valid{};
+	snapshot.valid[static_cast<int>(InteruptType::TIMER)] = valid.is_set(InteruptType::TIMER);
+	snapshot.valid[static_cast<int>(InteruptType::SOFTWARE)] = valid.is_set(InteruptType::SOFTWARE);
+	snapshot.valid[static_cast<int>(InteruptType::EXTERNAL_1)] = valid.is_set(InteruptType::EXTERNAL_1);
+	snapshot.valid[static_cast<int>(InteruptType::ERROR)] = valid.is_set(InteruptType::ERROR);
+	snapshot.valid[static_cast<int>(InteruptType::EXTERNAL_0)] = valid.is_set(InteruptType::EXTERNAL_0);
+	mu.unlock();
+	enable_timer();
 }

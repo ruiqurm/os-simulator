@@ -11,8 +11,11 @@ enum class InteruptType {
 	ERROR, // Non Maskable Interrupt
 	EXTERNAL_0 // Non Maskable Interrupt
 };
+
 typedef void (*InteruptFunc)(InteruptType, int, int64_t);
 const unsigned int TIMER_INTERUPT_INTERVAL = 100;// 100ms
+const int InteruptVectorTableSize = 32;
+
 class InteruptValid {
 	public:
 		InteruptValid() {}
@@ -21,6 +24,15 @@ class InteruptValid {
 		bool is_set(InteruptType);
 };
 
+struct Interupt {
+	InteruptType type;
+	int device_id;
+	int64_t value;
+	int64_t time;
+	bool operator < (const Interupt& b)const;
+	bool operator > (const Interupt& b)const;
+	bool is_blocking() const;
+};
 
 
 
@@ -52,3 +64,12 @@ void handle_interupt();
 void enable_timer();
 void disable_timer();
 void stop_timer();
+
+
+struct InteruptSnapshot {
+	vector<Interupt> interupts;
+	InteruptVector interuptVectorTable[InteruptVectorTableSize];
+	bool valid[InteruptVectorTableSize];
+};
+/// ¸øÇ°¶Ë
+InteruptSnapshot get_interupt_snapshot();

@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="interupt\heap.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="interupt\interupt.h">
       <Filter>头文件</Filter>
     </ClInclude>
