@@ -1,0 +1,6 @@
+12 8 4
+6 3 0
+5 2 0 
+4 1 0 /data/xiaoming
+3 0 5 /data/xiaoming
+-1 0 0
