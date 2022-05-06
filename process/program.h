@@ -7,6 +7,7 @@
 #include<map>
 #include<vector>
 #include "windows.h"
+#include "../memory/memory.h"
 
 
 #define READY 0 //定义各种状态代表的数值
@@ -47,6 +48,7 @@ typedef struct PCB {
 	int remainTime; // 进程还需运行的时间
 	int finalTime; // 进程运行结束的时间
 	stack<cmd> cmdStack; // 指令栈
+	v_address address;   //虚拟地址
 }PCB;
 
 // stack<PCB> readStack;

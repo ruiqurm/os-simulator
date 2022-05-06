@@ -93,7 +93,7 @@ int read(atom_data* data, v_address addr, m_pid pid) {
 	*data = memory[item->p_id * PAGE_SIZE + addr % PAGE_SIZE];
 	return 0;
 }
-
+//TODO:这个可以调用
 int write(atom_data data, v_address addr, m_pid pid) {
 	if (addr > DISK_SIZE) {
 		return -1;

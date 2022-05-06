@@ -1,5 +1,7 @@
 #include"program.h"
-
+#include "memory.h"
+//TODO:进程管理缺少第一个进程
+//TODO:将PCB再次存入内存模块
 int createPID(){
 	return ++PID;
 }
@@ -89,7 +91,7 @@ int create(string path){//创建进程，返回1创建成功，0失败
 	}
 	fclose(f);
 	//!closeFile(f);
-	/*!if (osMalloc(newPCB.PID, newPCB.size) {
+	/*!if (alloc(newPCB.address, newPCB.size, newPCB.PID) != 0 ) {
 		printf("内存分配失败");//内存分配失败	
 		return 0;
 	}*/
@@ -128,7 +130,7 @@ int wakeup(int PID) {//wakeup进程，返回1 wakeup成功，0失败
 	return 1;
 }
 
-int suspend(int PID) {//suspend进程，返回1 suspend成功，0失败
+int suspend(int PID, v_address address) {//suspend进程，返回1 suspend成功，0失败
 	if (proMap.find(PID) != proMap.end()) {
 		if (proMap[PID].state = READY) {
 			eraseRead(PID);
@@ -138,7 +140,7 @@ int suspend(int PID) {//suspend进程，返回1 suspend成功，0失败
 			return 0;
 		}
 		proMap[PID].state = SUSPEND;
-		//!osRealse(PID);		//释放内存，释放设备
+		//!free(address, PID);		//释放内存，释放设备
 		//!realse(PID,0);//0 代表释放所有设备
 	}
 	else {
