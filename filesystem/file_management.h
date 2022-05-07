@@ -118,6 +118,9 @@ myFile* OpenFile(string path, int create, int mode);
 //关闭文件  输入：文件结构体指针  返回：成功返回1，失败返回0
 int CloseFile(myFile* file);
 
+//读入一行（从当前位置读到换行符）  输入：缓冲区指针，文件结构体指针  返回：成功读出的字节数(不包括换行符）
+int fgets(void* v_buf, myFile* file);
+
 //标准读文件  输入：缓冲区指针、欲读字节数、文件结构体指针  返回：成功读出的字节数
 int Fread(void* buf, int count, myFile* file);
 

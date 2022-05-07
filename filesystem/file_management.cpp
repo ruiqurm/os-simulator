@@ -356,22 +356,25 @@ int readFile(void *v_buf, int count, iNode *inode, myFile *file)
 	while(left){
 		int offset=file->f_pos%BLOCK_SIZE; //读指针在当前块中的偏移量
 		int chars=min(BLOCK_SIZE-offset,left); //需要在当前块中读多少字节
+		bh = (char*)malloc(chars+1);
 		//如果所读取的数据块不存在，则将bh置为空。如果数据块存在但未成功读取，则退出循环。
 		if(nr=bmap(inode,file->f_pos/BLOCK_SIZE,0)){
-			if(!block_read(nr, offset, chars, bh+count-left)){
+			if(!block_read(nr, offset, chars, bh)){
 				break;
 			}
+			*(bh + chars) = '\0'; //如果成功读取数据到bh中，则将末尾置为'\0'
 		}else{
 			bh=NULL;
 		}
-		file->f_pos+=chars;
-		left-=chars;
 		//如果成功读到数据，则将其复制到目标缓冲区，否则向目标缓冲区中填入chars个0值字节
 		if(bh){
-			strcpy(buf, bh);
+			strcpy(buf+count-left, bh);
 		}else{
-			memset(buf,0,chars);
+			memset(buf+count-left,0,chars);
 		}
+		free(bh);
+		file->f_pos += chars;
+		left -= chars;
 	}
 	return count-left;
 }
@@ -419,6 +422,40 @@ int writeFile(void *v_buf, int count, iNode *inode, myFile *file)
 		file->f_pos=pos;
 	}
 	return i;
+}
+
+//读入一行（从当前位置读到换行符）  输入：缓冲区指针，文件结构体指针  返回：成功读出的字节数(不包括换行符）
+int fgets(void *v_buf, myFile *file)
+{
+	int count=0; //已读入的字节数
+	char *buf=(char *)v_buf; //目标缓冲区指针
+	char *bh; //临时读入缓冲区指针
+	int nr; //当前读的块号
+	while(1){
+		int offset=file->f_pos%BLOCK_SIZE; //读指针在当前块中的偏移量
+		int chars=BLOCK_SIZE-offset; //需要在当前块中读多少字节
+		bh = (char*)malloc(chars + 1);
+		if(!(nr=bmap(file->f_iNode,file->f_pos/BLOCK_SIZE,0) || !block_read(nr, offset, chars, bh)){
+			break;
+		}
+		//遍历读入的字符
+		for(int i=0; i<chars; i++){
+			char c=*(bh+i);
+			if(c=='\n'){
+				*(bh+i)='\0';
+				break;
+			}
+		}
+		//把临时缓冲区的内容读入目标缓冲
+		strcpy(buf+count, bh);
+		count+=i;
+		file->f_pos+=i;
+		if(i!=chars){ //说明读到了换行符
+			file->f_pos++; //读指针移到换行符之后
+			break;
+		}
+	}
+	return count;
 }
 
 //标准读文件  输入：缓冲区指针、欲读字节数、文件结构体指针  返回：成功读出的字节数
