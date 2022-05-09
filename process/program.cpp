@@ -1,5 +1,6 @@
 #include"program.h"
 #include "memory.h"
+#include "../interupt/interupt.h"
 //TODO:进程管理缺少第一个进程
 //TODO:将PCB再次存入内存模块
 int createPID(){
@@ -227,6 +228,7 @@ int runCmd(PCB *runPCB) {//运行进程的指令，如无中断等情况则返回1，否则返回0
 			printf("指令输入出错\n");//指令输入出错
 			break;
 		}
+		handle_interupt();
 	}
 	return 1;
 }
@@ -255,6 +257,8 @@ int main() {
 	create("C:\\Users\\86131\\Desktop\\1.txt");
 	create("C:\\Users\\86131\\Desktop\\3.txt");
 	create("C:\\Users\\86131\\Desktop\\2.txt");
+	init_interupt();
+	enable_timer();
 	for (int i = 0; i < 100; i++) {
 		run();
 		Sleep(200);
