@@ -1,51 +1,52 @@
 #include"program.h"
 #include "memory.h"
 #include "../interupt/interupt.h"
-//TODO:½ø³Ì¹ÜÀíÈ±ÉÙµÚÒ»¸ö½ø³Ì
-//TODO:½«PCBÔÙ´Î´æÈëÄÚ´æÄ£¿é
+//TODOï¼šæœªåŠ å…¶ä»–æ¨¡å—çš„å¤´æ–‡ä»¶ 
+//TODO:è¿›ç¨‹ç®¡ç†ç¼ºå°‘ç¬¬ä¸€ä¸ªè¿›ç¨‹
+//TODO:å°†PCBå†æ¬¡å­˜å…¥å†…å­˜æ¨¡å—
 int createPID(){
 	return ++PID;
 }
-int getCmd(PCB *newPCB) {//ÊäÈëÖ¸ÁîÄÚÈİ
+int getCmd(PCB *newPCB) {//è¾“å…¥æŒ‡ä»¤å†…å®¹
 	int buf[3];
-	// !Fread(buf, sizeof(buf), newPCB.myFile)
-	while (fscanf(newPCB->myFile, "%d%d%d", &buf[0], &buf[1], &buf[2])) {
-		if (buf[0] == -1)break;//µ±Ö¸ÁîÎª-1Ê±´ú±íÍË³ö
+	// fscanf(newPCB->myFile, "%d%d%d", &buf[0], &buf[1], &buf[2])
+	while (Fread(buf, sizeof(buf), newPCB.myFile)) {
+		if (buf[0] == -1)break;//å½“æŒ‡ä»¤ä¸º-1æ—¶ä»£è¡¨é€€å‡º
 		cmd newCmd;
 		newCmd.time = buf[0];
 		newCmd.num = buf[1];
 		newCmd.num2 = buf[2];
 		switch (newCmd.num)
 		{
-		case CREATE://´´½¨ÎÄ¼ş
-		case DELETE://É¾³ıÎÄ¼ş
+		case CREATE://åˆ›å»ºæ–‡ä»¶
+		case DELETE://åˆ é™¤æ–‡ä»¶
 			char c[1000];
-			fgets(c, 100, newPCB->myFile);
+			//fgets(c, 100, newPCB->myFile);
+			fgets(c,newPCB->myFile);//è¯»å…¥å­—ç¬¦ä¸²
 			newCmd.path = c;
-			//!newCmd.path = Fread(newPCB.myFile);//¶ÁÈë×Ö·û´®
 			if (newCmd.path == "")return 0;
 			newPCB->cmdStack.push(newCmd);
 			break;
-		case APPLY://ÆäËûÖ¸Áî
+		case APPLY://å…¶ä»–æŒ‡ä»¤
 		case REALESR:
 		case BLOCKCMD:
 		case WAKE:
 			newPCB->cmdStack.push(newCmd);
 			break;
 		default:
-			printf("ÊäÈë´íÎó\n");//ÊäÈë´íÎó
+			printf("è¾“å…¥é”™è¯¯\n");//è¾“å…¥é”™è¯¯
 			return 0;
 			break;
 		}
 	}
 	return 1;
 }
-int testPCB(PCB *newPCB){//²âÊÔPCBÄÚµÄÊı¾İÓĞÎŞÎÊÌâ
-	if (newPCB->needTime <= 0) {//·şÎñÊ±¼äĞ¡ÓÚ0
+int testPCB(PCB *newPCB){//æµ‹è¯•PCBå†…çš„æ•°æ®æœ‰æ— é—®é¢˜
+	if (newPCB->needTime <= 0) {//æœåŠ¡æ—¶é—´å°äº0
 		printf("currenttime is %d,parameter error.\n",newPCB->needTime);
 		return 0;
 	}
-	if (newPCB->size< newPCB->dataSize){ //ÄÚ´æ²»×ã
+	if (newPCB->size< newPCB->dataSize){ //å†…å­˜ä¸è¶³
 		printf("size is %d %d\n",newPCB->size,newPCB->dataSize);
 		return 0;
 	}
@@ -54,23 +55,23 @@ int testPCB(PCB *newPCB){//²âÊÔPCBÄÚµÄÊı¾İÓĞÎŞÎÊÌâ
 }
 
 // !string path
-int create(string path){//´´½¨½ø³Ì£¬·µ»Ø1´´½¨³É¹¦£¬0Ê§°Ü
-	//!myFile* f = OpenFile(path);//´ò¿ª½ø³ÌËùĞèµÄÎÄ¼ş
+int create(string path){//åˆ›å»ºè¿›ç¨‹ï¼Œè¿”å›1åˆ›å»ºæˆåŠŸï¼Œ0å¤±è´¥
+	myFile* f = OpenFile(path,0,1);//æ‰“å¼€è¿›ç¨‹æ‰€éœ€çš„æ–‡ä»¶
 	char c[100];
 	strcpy(c, path.c_str());
 	printf("%s\n", c);
-	FILE* f = fopen(c, "r");//´ò¿ª½ø³ÌËùĞèµÄÎÄ¼ş
+	//FILE* f = fopen(c, "r");//æ‰“å¼€è¿›ç¨‹æ‰€éœ€çš„æ–‡ä»¶
 	PCB newPCB;
 	newPCB.path = path;
 	newPCB.myFile = f;
-	if (f==NULL) {//ÅĞ¶ÏÎÄ¼şÊÇ·ñ´æÔÚ
-		printf("ÎÄ¼ş²»´æÔÚ\n");//ºóĞøÓÉ¶ÔÓ¦ÈËÔ±½øĞĞĞŞ¸Ä£¬ºóÍ¬,ÄÚ²¿µÄÄÚÈİÖ®ºóÒ²»áĞŞ¸Ä
+	if (f==NULL) {//åˆ¤æ–­æ–‡ä»¶æ˜¯å¦å­˜åœ¨
+		printf("æ–‡ä»¶ä¸å­˜åœ¨\n");//åç»­ç”±å¯¹åº”äººå‘˜è¿›è¡Œä¿®æ”¹ï¼ŒååŒ,å†…éƒ¨çš„å†…å®¹ä¹‹åä¹Ÿä¼šä¿®æ”¹
 		return 0;
 	}
 	int buf[3];
 	printf("%d\n", f);
-	// !Fread(buf, sizeof(buf), newPCB.myFile)
-	if (fscanf(newPCB.myFile, "%d%d%d", &buf[0], &buf[1], &buf[2]) == 3){ // ¶ÁÈ¡Ç°12¸ö×Ö½Ú£¬²¢°Ñ¶ÔÓ¦Î»ÖÃµÄÄÚÈİĞ´ÈëPCBÖĞ
+	//fscanf(newPCB.myFile, "%d%d%d", &buf[0], &buf[1], &buf[2]) == 3	
+	if (Fread(buf, sizeof(buf), newPCB.myFile)){ // è¯»å–å‰12ä¸ªå­—èŠ‚ï¼Œå¹¶æŠŠå¯¹åº”ä½ç½®çš„å†…å®¹å†™å…¥PCBä¸­
 		newPCB.needTime = buf[0];
 		newPCB.arriveTime = nowTime;
 		newPCB.remainTime = newPCB.needTime;
@@ -79,29 +80,26 @@ int create(string path){//´´½¨½ø³Ì£¬·µ»Ø1´´½¨³É¹¦£¬0Ê§°Ü
 		newPCB.state = READY;
 		newPCB.nowSize=newPCB.size-newPCB.dataSize;
 		if (!testPCB(&newPCB)) {
-			fclose(f);
-			//!closeFile(f);
+			CloseFile(f);
 			return 0;
 		}
 		newPCB.PID= createPID();
-	}else{//ÎÄ¼ş¶ÁÈ¡Ê§°Ü
+	}else{//æ–‡ä»¶è¯»å–å¤±è´¥
 		printf("file %s read initdata error.\n", path);
-		fclose(f);
-		//!closeFile(f);
+		CloseFile(f);
 		return 0;
 	}
-	fclose(f);
-	//!closeFile(f);
-	/*!if (alloc(newPCB.address, newPCB.size, newPCB.PID) != 0 ) {
-		printf("ÄÚ´æ·ÖÅäÊ§°Ü");//ÄÚ´æ·ÖÅäÊ§°Ü	
+	CloseFile(f);
+	if (alloc(newPCB.address, newPCB.size, newPCB.PID) != 0 ) {
+		printf("å†…å­˜åˆ†é…å¤±è´¥");//å†…å­˜åˆ†é…å¤±è´¥	
 		return 0;
-	}*/
+	}
 	proMap[newPCB.PID]=newPCB;
 	readVector.insert(readVector.end(),newPCB);
 	//readStack.push(newPCB);
 	return 1;
 }
-void eraseRead(int PID) {//É¾³ıreadVectorÖĞ¶ÔÓ¦PIDµÄPCB
+void eraseRead(int PID) {//åˆ é™¤readVectorä¸­å¯¹åº”PIDçš„PCB
 	for (auto i = readVector.begin(); i < readVector.end(); i++) {
 		if (i->PID == PID) {
 			readVector.erase(i);
@@ -109,123 +107,123 @@ void eraseRead(int PID) {//É¾³ıreadVectorÖĞ¶ÔÓ¦PIDµÄPCB
 		}
 	}
 }
-int block(int PID) {//block½ø³Ì£¬·µ»Ø1 block³É¹¦£¬0Ê§°Ü
+int block(int PID) {//blockè¿›ç¨‹ï¼Œè¿”å›1 blockæˆåŠŸï¼Œ0å¤±è´¥
 	if (proMap.find(PID) != proMap.end()&& proMap[PID].state==READY) {
 		proMap[PID].state = BLOCK;
-		eraseRead(PID);		//ĞŞ¸ÄreadVector
+		eraseRead(PID);		//ä¿®æ”¹readVector
 	}else {
-		printf("BLOCK:²»´æÔÚ¶ÔÓ¦½ø³Ì»ò½ø³Ì×´Ì¬²»¶Ô\n");//²»´æÔÚ¶ÔÓ¦½ø³Ì»ò½ø³Ì×´Ì¬²»¶Ô
+		printf("BLOCK:ä¸å­˜åœ¨å¯¹åº”è¿›ç¨‹æˆ–è¿›ç¨‹çŠ¶æ€ä¸å¯¹\n");//ä¸å­˜åœ¨å¯¹åº”è¿›ç¨‹æˆ–è¿›ç¨‹çŠ¶æ€ä¸å¯¹
 		return 0;
 	}
 	return 1;
 }
-int wakeup(int PID) {//wakeup½ø³Ì£¬·µ»Ø1 wakeup³É¹¦£¬0Ê§°Ü
+int wakeup(int PID) {//wakeupè¿›ç¨‹ï¼Œè¿”å›1 wakeupæˆåŠŸï¼Œ0å¤±è´¥
 	if (proMap.find(PID) != proMap.end() && proMap[PID].state == BLOCK) {
 		proMap[PID].state = READY;
 		readVector.insert(readVector.end(), proMap[PID]);
 	}
 	else {
-		printf("WAKEUP:²»´æÔÚ¶ÔÓ¦½ø³Ì»ò½ø³Ì×´Ì¬²»¶Ô\n");//²»´æÔÚ¶ÔÓ¦½ø³Ì»ò½ø³Ì×´Ì¬²»¶Ô
+		printf("WAKEUP:ä¸å­˜åœ¨å¯¹åº”è¿›ç¨‹æˆ–è¿›ç¨‹çŠ¶æ€ä¸å¯¹\n");//ä¸å­˜åœ¨å¯¹åº”è¿›ç¨‹æˆ–è¿›ç¨‹çŠ¶æ€ä¸å¯¹
 		return 0;
 	}
 	return 1;
 }
 
-int suspend(int PID, v_address address) {//suspend½ø³Ì£¬·µ»Ø1 suspend³É¹¦£¬0Ê§°Ü
+int suspend(int PID, v_address address) {//suspendè¿›ç¨‹ï¼Œè¿”å›1 suspendæˆåŠŸï¼Œ0å¤±è´¥
 	if (proMap.find(PID) != proMap.end()) {
 		if (proMap[PID].state = READY) {
 			eraseRead(PID);
 		}
 		else if(proMap[PID].state != BLOCK) {
-			printf("½ø³Ì×´Ì¬²»¶Ô\n");//½ø³Ì×´Ì¬²»¶Ô
+			printf("è¿›ç¨‹çŠ¶æ€ä¸å¯¹\n");//è¿›ç¨‹çŠ¶æ€ä¸å¯¹
 			return 0;
 		}
 		proMap[PID].state = SUSPEND;
-		//!free(address, PID);		//ÊÍ·ÅÄÚ´æ£¬ÊÍ·ÅÉè±¸
-		//!realse(PID,0);//0 ´ú±íÊÍ·ÅËùÓĞÉè±¸
+		free(address, PID);		//é‡Šæ”¾å†…å­˜ï¼Œé‡Šæ”¾è®¾å¤‡
+		release(PID,-1);//-1 ä»£è¡¨é‡Šæ”¾æ‰€æœ‰è®¾å¤‡
 	}
 	else {
-		printf("²»´æÔÚ¶ÔÓ¦½ø³Ì\n");//²»´æÔÚ¶ÔÓ¦½ø³Ì
+		printf("ä¸å­˜åœ¨å¯¹åº”è¿›ç¨‹\n");//ä¸å­˜åœ¨å¯¹åº”è¿›ç¨‹
 		return 0;
 	}
 	return 1;
 }
 
-int active(int PID) {//active½ø³Ì£¬·µ»Ø1 active³É¹¦£¬0Ê§°Ü
+int active(int PID) {//activeè¿›ç¨‹ï¼Œè¿”å›1 activeæˆåŠŸï¼Œ0å¤±è´¥
 	if (proMap.find(PID) != proMap.end()) {
 		if (proMap[PID].state = SUSPEND) {
-			/*if (osMalloc(proMap[PID].PID, proMap[PID].size) {
-				printf();//ÄÚ´æ·ÖÅäÊ§°Ü	
+			if(alloc(newPCB.address, newPCB.size, newPCB.PID)) {
+				printf("å†…å­˜åˆ†é…å¤±è´¥\n");//å†…å­˜åˆ†é…å¤±è´¥	
 				return 0;
-			}*/
+			}
 		}
 		else if (proMap[PID].state != BLOCK) {
-			printf("½ø³Ì×´Ì¬²»¶Ô\n");//½ø³Ì×´Ì¬²»¶Ô
+			printf("è¿›ç¨‹çŠ¶æ€ä¸å¯¹\n");//è¿›ç¨‹çŠ¶æ€ä¸å¯¹
 			return 0;
 		}
 		proMap[PID].state = READY;
 		readVector.insert(readVector.end(), proMap[PID]);
 	}
 	else {
-		printf("²»´æÔÚ¶ÔÓ¦½ø³Ì\n");//²»´æÔÚ¶ÔÓ¦½ø³Ì
+		printf("ä¸å­˜åœ¨å¯¹åº”è¿›ç¨‹\n");//ä¸å­˜åœ¨å¯¹åº”è¿›ç¨‹
 		return 0;
 	}
 	return 1;
 }
 
-int stop(int PID) {//stop½ø³Ì£¬·µ»Ø1 stop³É¹¦£¬0Ê§°Ü
+int stop(int PID,v_address address) {//stopè¿›ç¨‹ï¼Œè¿”å›1 stopæˆåŠŸï¼Œ0å¤±è´¥
 	if (proMap.find(PID) != proMap.end()) {
 		if (proMap[PID].state == READY) {
 			eraseRead(PID);
 		}
 		proMap[PID].state = END;
 		proMap[PID].finalTime = nowTime;
-		//!osRealse(PID);		//ÊÍ·ÅÄÚ´æ£¬ÊÍ·ÅÉè±¸
-		//!realse(PID, 0);//0 ´ú±íÊÍ·ÅËùÓĞÉè±¸
+		free(address, PID);		//é‡Šæ”¾å†…å­˜ï¼Œé‡Šæ”¾è®¾å¤‡
+		release(PID, -1);//-1 ä»£è¡¨é‡Šæ”¾æ‰€æœ‰è®¾å¤‡
 		endVector.insert(endVector.end(), proMap[PID]);
 		proMap.erase(PID);
 	}
 	else {
-		printf("²»´æÔÚ¶ÔÓ¦½ø³Ì\n");//²»´æÔÚ¶ÔÓ¦½ø³Ì
+		printf("ä¸å­˜åœ¨å¯¹åº”è¿›ç¨‹\n");//ä¸å­˜åœ¨å¯¹åº”è¿›ç¨‹
 		return 0;
 	}
 	return 1;
 }
 
 
-int runCmd(PCB *runPCB) {//ÔËĞĞ½ø³ÌµÄÖ¸Áî£¬ÈçÎŞÖĞ¶ÏµÈÇé¿öÔò·µ»Ø1£¬·ñÔò·µ»Ø0
-	int now = runPCB->needTime - runPCB->remainTime;//ÒÑÔËĞĞÊ±¼äÆ¬ÊıÁ¿
-	while(!runPCB->cmdStack.empty() && runPCB->cmdStack.top().time <= now) {//Ò»¸öÖÜÆÚÔËĞĞÒ»¸öÖ¸Áî£¬Èç¹û²»Ö¹Ò»¸ö´Ë´¦¿ÉÒÔ¸Ä³Éwhile
+int runCmd(PCB *runPCB) {//è¿è¡Œè¿›ç¨‹çš„æŒ‡ä»¤ï¼Œå¦‚æ— ä¸­æ–­ç­‰æƒ…å†µåˆ™è¿”å›1ï¼Œå¦åˆ™è¿”å›0
+	int now = runPCB->needTime - runPCB->remainTime;//å·²è¿è¡Œæ—¶é—´ç‰‡æ•°é‡
+	while(!runPCB->cmdStack.empty() && runPCB->cmdStack.top().time <= now) {//ä¸€ä¸ªå‘¨æœŸè¿è¡Œä¸€ä¸ªæŒ‡ä»¤ï¼Œå¦‚æœä¸æ­¢ä¸€ä¸ªæ­¤å¤„å¯ä»¥æ”¹æˆwhile
 		cmd nowCmd = runPCB->cmdStack.top();
 		runPCB->cmdStack.pop();
 		switch (nowCmd.num)
 		{
-		case CREATE://´´½¨ÎÄ¼ş
-			//!createFile(runPCB.PID, nowCmd.path, nowCmd.num2);
-			printf("´´½¨ÎÄ¼ş\n");
+		case CREATE://åˆ›å»ºæ–‡ä»¶
+			CreateFile(nowCmd.path, nowCmd.num2);
+			printf("åˆ›å»ºæ–‡ä»¶\n");
 			break;
-		case DELETE://É¾³ıÎÄ¼ş
-			//!deleteFile(runPCB.PID, nowCmd.path);
-			printf("É¾³ıÎÄ¼ş\n");
+		case DELETE://åˆ é™¤æ–‡ä»¶
+			DeleteFile(nowCmd.path);
+			printf("åˆ é™¤æ–‡ä»¶\n");
 			break;
-		case APPLY://ÉêÇëÉè±¸
-			/*!if (!apply(runPCB.PID, nowCmd.num2)) {//Èç¹ûÉêÇëÉè±¸Ê§°Ü
+		case APPLY://ç”³è¯·è®¾å¤‡
+			if (!acquire(runPCB.PID, nowCmd.num2)) {//å¦‚æœç”³è¯·è®¾å¤‡å¤±è´¥
 				block(runPCB.PID);
-			}*/
-			printf("ÉêÇëÉè±¸\n");
+			}
+			printf("ç”³è¯·è®¾å¤‡\n");
 			break;
-		case REALESR://ÊÍ·ÅÉè±¸
-			//! release(runPCB.PID, nowCmd.num2);
-			printf("ÊÍ·ÅÉè±¸\n");
+		case REALESR://é‡Šæ”¾è®¾å¤‡
+			release(runPCB.PID, nowCmd.num2);
+			printf("é‡Šæ”¾è®¾å¤‡\n");
 			break;
-		case BLOCKCMD://×èÈûÆäËû½ø³Ì
+		case BLOCKCMD://é˜»å¡å…¶ä»–è¿›ç¨‹
 			block(nowCmd.num2);
 			break;
-		case WAKE://»½ĞÑÆäËû½ø³Ì
+		case WAKE://å”¤é†’å…¶ä»–è¿›ç¨‹
 			wakeup(nowCmd.num2);
 			break;
 		default:
-			printf("Ö¸ÁîÊäÈë³ö´í\n");//Ö¸ÁîÊäÈë³ö´í
+			printf("æŒ‡ä»¤è¾“å…¥å‡ºé”™\n");//æŒ‡ä»¤è¾“å…¥å‡ºé”™
 			break;
 		}
 		handle_interupt();
@@ -234,14 +232,14 @@ int runCmd(PCB *runPCB) {//ÔËĞĞ½ø³ÌµÄÖ¸Áî£¬ÈçÎŞÖĞ¶ÏµÈÇé¿öÔò·µ»Ø1£¬·ñÔò·µ»Ø0
 }
 
 void run() {
-	//ĞèÒª¶¨ÆÚµ÷ÓÃ´Ë½ø³Ì
+	//éœ€è¦å®šæœŸè°ƒç”¨æ­¤è¿›ç¨‹
 	if (!readVector.empty()) {
 		PCB runPCB = readVector[0];
 		readVector.erase(readVector.begin());
 		if (!runCmd(&runPCB))return;
 		runPCB.remainTime--;
-		if (runPCB.remainTime == 0) {//Èç¹ûÒÑ¾­ÔËĞĞ½áÊø£¬Ôò½áÊø½ø³Ì£¬·ñÔò¼ÌĞø¶ªÈëÕ»ÖĞ
-			stop(runPCB.PID);
+		if (runPCB.remainTime == 0) {//å¦‚æœå·²ç»è¿è¡Œç»“æŸï¼Œåˆ™ç»“æŸè¿›ç¨‹ï¼Œå¦åˆ™ç»§ç»­ä¸¢å…¥æ ˆä¸­
+			stop(runPCB.PID,runPCB.address);
 		}
 		else {
 			readVector.insert(readVector.end(), runPCB);
