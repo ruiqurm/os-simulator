@@ -11,7 +11,7 @@ atom_data disk[DISK_SIZE];
 void init() {
 	//初始化页表
 	for (p_address addr = 0; addr < PAGE_TABLE_SIZE;addr++) {
-		page_item = page_table[addr];
+		pagetable_item page_item = page_table[addr];
 		page_item.v_id = addr;
 		page_item.p_id = FULL;
 		page_item.if_use = 0;
@@ -19,7 +19,7 @@ void init() {
 		page_table[addr] = page_item;
 	}
 	//初始化内存
-	memset(page_mem, 0, sizeof(page_mem));
+	memset(memory, 0, sizeof(memory));
 	//初始化位表
 	memset(v_page, 0, sizeof(v_page));
 	memset(p_page, 0, sizeof(p_page));
@@ -30,7 +30,7 @@ void init() {
 	//初始化磁盘
 	memset(disk, 0, sizeof(disk));
 }
-void disk_load(physical_address mem_now, physical_address disk_now, m_size size) {
+void disk_load(p_address mem_now, p_address disk_now, m_size size) {
 	if (mem_now + size > MEMORY_SIZE || disk_now + size > DISK_SIZE) {
 		exit(-1);//中断
 	}
@@ -40,7 +40,7 @@ void disk_load(physical_address mem_now, physical_address disk_now, m_size size)
 		}
 	}
 }
-void disk_save(physical_address mem_now, physical_address disk_now, m_size size) {
+void disk_save(p_address mem_now, p_address disk_now, m_size size) {
 	if (mem_now + size > MEMORY_SIZE || disk_now + size > DISK_SIZE) {
 		exit(-1);//中断
 	}
@@ -57,8 +57,8 @@ int read(atom_data* data, v_address addr, m_pid pid) {
 	int flag = 0;
 	for (p_address p = 0; p < USE_RECORD_SIZE; p++) {
 		memory_use used = mem_use[p];
-		if (p.pid >= 1000)break;
-		if (p.pid == pid && p.size + p.address > addr && p.address <= addr) {
+		if (used.pid >= 1000)break;
+		if (used.pid == pid && used.size + used.address > addr && used.address <= addr) {
 			flag = 1;
 			break;
 		}
@@ -101,8 +101,8 @@ int write(atom_data data, v_address addr, m_pid pid) {
 	int flag = 0;
 	for (p_address p = 0; p < USE_RECORD_SIZE; p++) {
 		memory_use used = mem_use[p];
-		if (p.pid >= 1000)break;
-		if (p.pid == pid && p.size + p.address > addr && p.address <= addr) {
+		if (used.pid >= 1000)break;
+		if (used.pid == pid && used.size + used.address > addr && used.address <= addr) {
 			flag = 1;
 			break;
 		}

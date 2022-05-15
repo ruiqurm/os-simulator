@@ -1,5 +1,3 @@
-#include "p_mem.h"
-
 typedef unsigned int m_pid;
 typedef unsigned int m_size;
 typedef unsigned char atom_data;
@@ -32,5 +30,5 @@ struct memory_use {
 	m_size size;
 };
 
-atom_data read_memory(physical_address);
-void write_memory(atom_data, physical_address);
+atom_data read_memory(p_address);
+void write_memory(atom_data, p_address);
