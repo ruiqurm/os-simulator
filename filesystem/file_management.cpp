@@ -207,7 +207,7 @@ myFile *openFile(iNode *inode, int mode)
 iNode *createFile(iNode *father, string name, int type)
 {
 	iNode *inode=new_iNode();
-	if(!inode) return NULL;
+	if(inode->i_num==-1) return NULL;
 	inode->i_mode=type;
 	inode->i_dirt=1;
 	if(father->i_size/ENTRY_SIZE==DIR_NUM || !add_entry(father,father->i_size/ENTRY_SIZE,name,inode->i_num)){
@@ -354,11 +354,11 @@ int readFile(void *v_buf, int count, iNode *inode, myFile *file)
 		return 0;
 	}
 	while(left){
-		int offset=file->f_pos%BLOCK_SIZE; //读指针在当前块中的偏移量
-		int chars=min(BLOCK_SIZE-offset,left); //需要在当前块中读多少字节
+		int offset=file->f_pos%blockSize; //读指针在当前块中的偏移量
+		int chars=min(blockSize-offset,left); //需要在当前块中读多少字节
 		bh = (char*)malloc(chars+1);
 		//如果所读取的数据块不存在，则将bh置为空。如果数据块存在但未成功读取，则退出循环。
-		if(nr=bmap(inode,file->f_pos/BLOCK_SIZE,0)){
+		if(nr=bmap(inode,file->f_pos/blockSize,0)){
 			if(!block_read(nr, offset, chars, bh)){
 				break;
 			}
@@ -395,16 +395,16 @@ int writeFile(void *v_buf, int count, iNode *inode, myFile *file)
 	}
 
 	//之后判断写入数据后文件大小会不会越界
-	if(pos+count > FBLK_NUM*BLOCK_SIZE){
+	if(pos+count > FBLK_NUM*blockSize){
 		return 0;
 	}
 	while(i<count){
 		//如果要写入的块不存在且创建失败，则退出循环
-		if(!(nr=bmap(inode,pos/BLOCK_SIZE,1))){
+		if(!(nr=bmap(inode,pos/blockSize,1))){
 			break;
 		}
-		int offset=pos%BLOCK_SIZE; //要写入的位置在块中的偏移量
-		int chars=min(BLOCK_SIZE-offset,count-i); //需要在当前块中写入多少字节
+		int offset=pos%blockSize; //要写入的位置在块中的偏移量
+		int chars=min(blockSize-offset,count-i); //需要在当前块中写入多少字节
 		//如果写入失败，则直接退出循环
 		if(!block_write(nr, offset, chars, buf+i)){
 			break;
@@ -432,10 +432,10 @@ int fgets(void *v_buf, myFile *file)
 	char *bh; //临时读入缓冲区指针
 	int nr; //当前读的块号
 	while(1){
-		int offset=file->f_pos%BLOCK_SIZE; //读指针在当前块中的偏移量
-		int chars=BLOCK_SIZE-offset; //需要在当前块中读多少字节
+		int offset=file->f_pos%blockSize; //读指针在当前块中的偏移量
+		int chars=blockSize-offset; //需要在当前块中读多少字节
 		bh = (char*)malloc(chars + 1);
-		if(!(nr=bmap(file->f_iNode,file->f_pos/BLOCK_SIZE,0)) || !block_read(nr, offset, chars, bh)){
+		if(!(nr=bmap(file->f_iNode,file->f_pos/blockSize,0)) || !block_read(nr, offset, chars, bh)){
 			break;
 		}
 		//遍历读入的字符
