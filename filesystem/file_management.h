@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <ctime>
+#include "../device/device.h"
 using namespace std;
 
 
