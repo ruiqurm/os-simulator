@@ -1,7 +1,7 @@
 #include "file_management.h"
 using namespace std;
 
-//���ļ����Ƚ�Ϊ0  ���룺�ļ���inodeָ��  �������
+//将文件长度截为0  输入：文件的inode指针  输出：无
 void truncate(iNode *inode)
 {
 	int i;
@@ -16,7 +16,7 @@ void truncate(iNode *inode)
 	return;
 }
 
-//�ļ���ӳ�䵽�̿�Ĵ�������  ���룺�ļ���inodeָ�룬�ļ��е����ݿ�ţ�������־�����Ϊ1�����߼��鲻����ʱ�����µĴ��̿飩  ���أ��豸�ϵ��߼����
+//文件块映射到盘块的处理操作  输入：文件的inode指针，文件中的数据块号，创建标志（如果为1则在逻辑块不存在时申请新的磁盘块）  返回：设备上的逻辑块号
 int bmap(iNode *inode, int block, int create)
 {
 	if(create && !inode->i_zone[block]){
@@ -27,35 +27,35 @@ int bmap(iNode *inode, int block, int create)
 	return inode->i_zone[block];
 }
 
-//��inode����������1�����Ի������д�ػ�ɾ��i�ڵ�  ���룺inode��ָ��  ���أ���
+//将inode的引用数减1，可以会视情况写回或删除i节点  输入：inode的指针  返回：无
 void iput(iNode *inode)
 {
-	if(inode->i_count>1){ //�������������1������������1�󷵻�
+	if(inode->i_count>1){ //如果引用数大于1，则将引用数减1后返回
 		inode->i_count--;
 		return;
 	}
-	if(!inode->nlinks){ //���������Ϊ1��������Ϊ0��˵���ļ��ѱ�ɾ�������ͷ�i�ڵ㼰���ݿ�
+	if(!inode->nlinks){ //如果引用数为1且链接数为0，说明文件已被删除，则释放i节点及数据块
 		truncate(inode);
 		free_iNode(inode);
 		return;
 	}
-	if(inode->i_dirt){ //���������Ϊ1����������Ϊ0��˵���ļ�û��ɾ����inode����ʹ�ã���ʱ���i_dirtΪ1��inodeд��
+	if(inode->i_dirt){ //如果引用数为1但链接数不为0，说明文件没被删除但inode不再使用，此时如果i_dirt为1则将inode写回
 		write_iNode(inode);
 	}
 	inode->i_count--;
 	return;
 }
 
-//��i�ڵ�Ż�ȡinode�ṹ��ָ��  ���룺i�ڵ��  ���أ�inode��ָ��
+//由i节点号获取inode结构体指针  输入：i节点号  返回：inode的指针
 iNode *iget(int nr)
 {
-	//���ȴ�i�ڵ����ȡһ�����нڵ㱸��
+	//首先从i节点表中取一个空闲节点备用
 	iNode *empty=get_empty_inode();
 
-	//����ɨ��i�ڵ����Ѱ��ָ��i�ڵ�ŵ�inode
+	//接着扫描i节点表，寻找指定i节点号的inode
 	for(int i=0; i<INODE_NUM; i++){
 		if(iNode_table[i].i_num==nr){
-			if(empty){ //����ҵ���empty��û����
+			if(empty){ //如果找到了empty就没用了
 				iput(empty);
 			}
 			return &iNode_table[i];
@@ -68,7 +68,7 @@ iNode *iget(int nr)
 	return empty;
 }
 
-//��i�ڵ���л�ȡһ�����е�i�ڵ���  ���룺��  ���أ�inode��ָ��
+//从i节点表中获取一个空闲的i节点项  输入：无  返回：inode的指针
 iNode *get_empty_inode()
 {
 	iNode *inode=NULL;
@@ -85,10 +85,10 @@ iNode *get_empty_inode()
 	return inode;
 }
 
-//��Ŀ¼������Ŀ¼��  ���룺Ŀ¼inodeָ�롢�ļ�����Ŀ¼��ָ��  ���أ��ɹ�����1��ʧ�ܷ���0
+//从目录表中找目录项  输入：目录inode指针、文件名、目录项指针  返回：成功返回1，失败返回0
 int find_entry(iNode *inode, string name, dir_entry* dir, int &de)
 {
-	int num=(inode->i_size)/sizeof(dir_entry); //num��ʾ��Ŀ¼���м���Ŀ¼��
+	int num=(inode->i_size)/sizeof(dir_entry); //num表示此目录下有几个目录项
 	dir = (dir_entry*)malloc(sizeof(dir_entry)*num);
 	myFile *file=openFile(inode,0);
 	int ret=readFile(dir,inode->i_size,inode,file);
@@ -107,13 +107,13 @@ int find_entry(iNode *inode, string name, dir_entry* dir, int &de)
 	return flag;
 }
 
-//��Ŀ¼����ĳλ�ü�һ����Ŀ¼��  ���룺Ŀ¼���ڵ�ָ�룬Ŀ¼���ţ�Ҫд������֣�Ҫд��Ľڵ���  ���أ��ɹ�����1��ʧ�ܷ���0
+//在目录表的某位置加一个新目录项  输入：目录表节点指针，目录项编号，要写入的名字，要写入的节点编号  返回：成功返回1，失败返回0
 int add_entry(iNode *inode, int de, string name, unsigned int nr)
 {
-	//�½�һ��Ŀ¼��ṹ��ָ��
+	//新建一个目录项结构体指针
 	dir_entry *dir=(dir_entry *)malloc(sizeof(dir_entry));
 	dir->iNode_no=nr;
-	//�򿪵�ǰĿ¼�ļ�����д����
+	//打开当前目录文件进行写操作
 	myFile *file=openFile(inode,1);
 	file->f_pos=ENTRY_SIZE*de;
 	const char *buf=name.c_str();
@@ -124,25 +124,25 @@ int add_entry(iNode *inode, int de, string name, unsigned int nr)
 	return ret?1:0;
 }
 
-//Ѱ��ָ��·���ļ����ļ����͸�Ŀ¼��iNode  ���룺·��������Ŀ¼iNodeָ���ָ�룬�ļ�������������  ���أ��ɹ�����1��ʧ�ܷ���0
+//寻找指定路径文件的文件名和父目录的iNode  输入：路径名，父目录iNode指针的指针，文件名变量的引用  返回：成功返回1，失败返回0
 int namei(string path, iNode** father, string& filename)
 {
-	//���·����ĩβ��'/'�Ļ�Ҫȥ��
+	//如果路径名末尾有'/'的话要去掉
 	int k=path.size() - 1;
 	if (path[k] == '/') {
 		path=path.substr(0,k);
 	}
 	
-	//·��������Ϊ��
+	//路径名不能为空
 	int len=path.size();
 	if(len==0) return NULL; 
 	if(len>PATH_LENGTH) return NULL;
 
 	iNode *inode;
 	dir_entry *dir;
-	int de; //Ŀ���ļ���Ŀ¼���е�λ��
-	int p; //·������һ��Ԫ�ص�λ��
-	//���·������һ���ַ���'/'��˵���Ǿ���·������Ӧ�ôӸ�Ŀ¼��ʼ���������������·�������ӵ�ǰĿ¼��ʼ����
+	int de; //目标文件在目录表中的位置
+	int p; //路径名第一个元素的位置
+	//如果路径名第一个字符是'/'，说明是绝对路径名，应该从根目录开始操作；否则是相对路径名，从当前目录开始操作
 	if(path[0]=='/'){
 		inode=root;
 		p++;
@@ -150,22 +150,22 @@ int namei(string path, iNode** father, string& filename)
 		inode=pwd;
 	}
 
-	inode->i_count++; //��ǰi�ڵ�����ʹ�ã�inode����������һ
+	inode->i_count++; //当前i节点正在使用，inode的引用数加一
 
-	//��ʼ��·���еĸ���Ŀ¼�����ļ�������ѭ������
+	//开始对路径中的各个目录名和文件名进行循环处理
 	while(1){
-		int k=p; //��¼p�ĳ�ʼֵ
-		if(inode->i_mode){ //���inode��Ӧ������ͨ�ļ�
+		int k=p; //记录p的初始值
+		if(inode->i_mode){ //如果inode对应的是普通文件
 			iput(inode);
 			return NULL;
 		}
 
-		//�ӵ�ǰλ��p��ʼѰ��'/'
+		//从当前位置p开始寻找'/'
 		int namelen=0;
 		for( ; p<len && path[p]!='/'; namelen++) p++;
 
 		string s=path.substr(k,namelen); 
-		//���p����Խ���ˣ�˵���ѵ���·������ĩβ����ֱ�ӷ���
+		//如果p最终越界了，说明已到达路径名的末尾，则直接返回
 		if(p==len){
 			filename=s;
 			*father=inode;
@@ -179,17 +179,17 @@ int namei(string path, iNode** father, string& filename)
 		int nr=dir[de].iNode_no;
 		inode=iget(nr);
 		free(dir);
-		if(!inode){ //���û�гɹ�����µ�inode��Ҳֱ�ӷ���
+		if(!inode){ //如果没有成功获得新的inode，也直接返回
 			return 0;
 		}
 	}
 }
 
-//�ļ�ϵͳ�ڲ����ļ�  ���룺�ļ�inodeָ�롢д��ģʽ��0Ϊ׷�ӣ�1Ϊ�ӵ�ǰλ��д�룬2Ϊ���ǣ� ���أ������ļ��ṹ��ָ��  
+//文件系统内部打开文件  输入：文件inode指针、写入模式（0为追加，1为从当前位置写入，2为覆盖） 返回：返回文件结构体指针  
 myFile *openFile(iNode *inode, int mode)
 {
 	myFile *file;
-	//���ļ�����Ѱ�ҿ�����
+	//在文件表中寻找空闲项
 	int i;
 	for(i=0;i<NR_FILE;i++){
 		if(file_table[i].f_count==0) break;
@@ -203,7 +203,7 @@ myFile *openFile(iNode *inode, int mode)
 	return file;
 }
 
-//�ļ�ϵͳ�ڲ������ļ�  ���룺�ļ���Ŀ¼��inodeָ�롢�ļ������ļ�����  ���أ��ļ���inodeָ��
+//文件系统内部创建文件  输入：文件父目录的inode指针、文件名、文件类型  返回：文件的inode指针
 iNode *createFile(iNode *father, string name, int type)
 {
 	iNode *inode=new_iNode();
@@ -215,7 +215,7 @@ iNode *createFile(iNode *father, string name, int type)
 		iput(inode);
 		return NULL;
 	}
-	if(!type){ //���Ҫ��������Ŀ¼�ļ�����Ҫ���������µ�Ĭ��Ŀ¼��"."��".."
+	if(!type){ //如果要创建的是目录文件，则还要设置两个新的默认目录项"."和".."
 		if(!add_entry(inode,0,".",inode->i_num) || !add_entry(inode,1,"..",father->i_num)){
 			return NULL;
 		}
@@ -225,16 +225,16 @@ iNode *createFile(iNode *father, string name, int type)
 	return inode;
 }
 
-//�ļ�ϵͳ��ʼ��  ���룺��  ���أ��ɹ�����1��ʧ�ܷ���0
+//文件系统初始化  输入：无  返回：成功返回1，失败返回0
 int init_filesystem()
 {
 	iNode *inode=iget(ROOT_INO);
 	if(!inode) return 0;
-	pwd=root=inode; //��ʼʱ��ǰ����Ŀ¼Ϊ��Ŀ¼
+	pwd=root=inode; //初始时当前工作目录为根目录
 	return 1;
 }
 
-//�����ļ�  ���룺�ļ�·�����ļ����ͣ�0��ʾĿ¼�ļ���1��ʾ��ͨ�ļ���  ���أ��ɹ�����1��ʧ�ܷ���0
+//创建文件  输入：文件路径、文件类型（0表示目录文件，1表示普通文件）  返回：成功返回1，失败返回0
 int CreateFile(string path, int type)
 {
 	iNode *father;
@@ -259,7 +259,7 @@ int CreateFile(string path, int type)
 	}
 }
 
-//ɾ���ļ�  ���룺�ļ�·��  ���أ��ɹ�����1��ʧ�ܷ���0
+//删除文件  输入：文件路径  返回：成功返回1，失败返回0
 int DeleteFile(string path)
 {
 	iNode *father;
@@ -272,13 +272,13 @@ int DeleteFile(string path)
 	int nr=dir[de].iNode_no;
 	iNode *inode=iget(nr);
 	if(!inode) return 0;
-	//���Ҫɾ������Ŀ¼��Ŀ¼�ǿգ���ɾ��ʧ��
+	//如果要删除的是目录且目录非空，则删除失败
 	if(!inode->i_mode && inode->i_size!=2*ENTRY_SIZE){
 		return 0;
 	}
-	//���Ҫɾ����ǰĿ¼����ɾ��ʧ��
+	//如果要删除当前目录，则删除失败
 	if(inode==pwd) return 0;
-	//���ȴӸ�Ŀ¼��ɾ��Ŀ¼��
+	//首先从父目录中删除目录项
 	int num=father->i_size/sizeof(dir_entry);
 	for(int i=de; i<num; i++){
 		dir[i]=dir[i+1];
@@ -287,20 +287,20 @@ int DeleteFile(string path)
 	myFile *file=openFile(father,0);
 	int ret=writeFile(dir,(num-1)*ENTRY_SIZE,father,file);
 	father->mtime=time(0);
-	if(!inode->i_mode) father->nlinks--; //���Ҫɾ������Ŀ¼����Ŀ¼��������1
+	if(!inode->i_mode) father->nlinks--; //如果要删除的是目录，则父目录链接数减1
 	father->i_dirt=1;
 	iput(father);
 	free(dir);
 	CloseFile(file);
 	if(!ret) return 0;
-	//֮���ļ���i�ڵ���������Ϊ0
+	//之后将文件的i节点链接数减为0
 	inode->nlinks=0;
 	inode->i_dirt=1;
 	iput(inode);
 	return 1;
 }
 
-//���ļ�  ���룺�ļ�·�������û���Ƿ񴴽���д��ģʽ��0Ϊ׷�ӣ�1Ϊ�ӵ�ǰλ��д�룬2Ϊ���ǣ� ���أ������ļ��ṹ��ָ��
+//打开文件  输入：文件路径、如果没有是否创建、写入模式（0为追加，1为从当前位置写入，2为覆盖） 返回：返回文件结构体指针
 myFile* OpenFile(string path, int create, int mode)
 {
 	iNode *father;
@@ -309,18 +309,18 @@ myFile* OpenFile(string path, int create, int mode)
 	int de;
 	if(!namei(path,&father,name)) return NULL;
 	int ret=find_entry(father,name,dir,de);
-	if(ret){ //���ļ�����
+	if(ret){ //此文件存在
 		iput(father);
 		int nr=dir[de].iNode_no;
 		iNode *inode=iget(nr);
 		free(dir);
-		if (!inode) return NULL; //���û�гɹ��ҵ��ļ���inode�������
+		if (!inode) return NULL; //如果没有成功找到文件的inode，则出错
 		if (!inode->i_mode){
 			iput(inode);
-			return NULL; //�����inode��Ӧ����һ��Ŀ¼�ļ��������
+			return NULL; //如果此inode对应的是一个目录文件，则出错
 		}
 		return openFile(inode,mode);
-	}else{ //���ļ�������
+	}else{ //此文件不存在
 		if(!create) return NULL;
 		iNode *inode=createFile(father,name,1);
 		iput(father);
@@ -333,40 +333,40 @@ myFile* OpenFile(string path, int create, int mode)
 	}
 }
 
-//�ر��ļ�  ���룺�ļ��ṹ��ָ��  ���أ��ɹ�����1��ʧ�ܷ���0
+//关闭文件  输入：文件结构体指针  返回：成功返回1，失败返回0
 int CloseFile(myFile* file)
 {
-	if(file->f_count==0) return 0; //�Ѿ�������
-	if(--file->f_count) return 1; //��������
+	if(file->f_count==0) return 0; //已经无人用
+	if(--file->f_count) return 1; //还有人用
 	iput(file->f_iNode);
 	return 1;
 }
 
-//���ļ�  ���룺������ָ�롢�����ֽ������ļ�inodeָ�롢��дָ��λ��  ���أ��ɹ��������ֽ���
+//读文件  输入：缓冲区指针、欲读字节数、文件inode指针、读写指针位置  返回：成功读出的字节数
 int readFile(void *v_buf, int count, iNode *inode, myFile *file)
 {
-	int left; //��ʣ�����ֽ�û��
-	int chars; //�ӵ�ǰ���ж������ֽ�
-	int nr; //��ǰ���Ŀ��
-	char *buf=(char *)v_buf; //Ŀ�껺����ָ��
-	char *bh; //��ʱ���뻺����ָ��
-	if((left=count)<=0){ //Ҫ������ֽ���С�ڵ���0
+	int left; //还剩多少字节没读
+	int chars; //从当前块中读多少字节
+	int nr; //当前读的块号
+	char *buf=(char *)v_buf; //目标缓冲区指针
+	char *bh; //临时读入缓冲区指针
+	if((left=count)<=0){ //要读入的字节数小于等于0
 		return 0;
 	}
 	while(left){
-		int offset=file->f_pos%BLOCK_SIZE; //��ָ���ڵ�ǰ���е�ƫ����
-		int chars=min(BLOCK_SIZE-offset,left); //��Ҫ�ڵ�ǰ���ж������ֽ�
+		int offset=file->f_pos%BLOCK_SIZE; //读指针在当前块中的偏移量
+		int chars=min(BLOCK_SIZE-offset,left); //需要在当前块中读多少字节
 		bh = (char*)malloc(chars+1);
-		//�������ȡ�����ݿ鲻���ڣ���bh��Ϊ�ա�������ݿ���ڵ�δ�ɹ���ȡ�����˳�ѭ����
+		//如果所读取的数据块不存在，则将bh置为空。如果数据块存在但未成功读取，则退出循环。
 		if(nr=bmap(inode,file->f_pos/BLOCK_SIZE,0)){
 			if(!block_read(nr, offset, chars, bh)){
 				break;
 			}
-			*(bh + chars) = '\0'; //����ɹ���ȡ���ݵ�bh�У���ĩβ��Ϊ'\0'
+			*(bh + chars) = '\0'; //如果成功读取数据到bh中，则将末尾置为'\0'
 		}else{
 			bh=NULL;
 		}
-		//����ɹ��������ݣ����临�Ƶ�Ŀ�껺������������Ŀ�껺����������chars��0ֵ�ֽ�
+		//如果成功读到数据，则将其复制到目标缓冲区，否则向目标缓冲区中填入chars个0值字节
 		if(bh){
 			strcpy(buf+count-left, bh);
 		}else{
@@ -379,33 +379,33 @@ int readFile(void *v_buf, int count, iNode *inode, myFile *file)
 	return count-left;
 }
 
-//д�ļ�  ���룺������ָ�롢��д�ֽ������ļ�inodeָ�롢��дָ��λ��  ���أ��ɹ�д����ֽ���
+//写文件  输入：缓冲区指针、欲写字节数、文件inode指针、读写指针位置  返回：成功写入的字节数
 int writeFile(void *v_buf, int count, iNode *inode, myFile *file)
 {
-	int pos; //Ҫд���λ��
-	int i=0; //��д���ֽ���
-	int nr; //��ǰҪд��Ŀ��
-	char *buf=(char *)v_buf; //Դ������ָ��
+	int pos; //要写入的位置
+	int i=0; //已写入字节数
+	int nr; //当前要写入的块号
+	char *buf=(char *)v_buf; //源缓冲区指针
 
-	//���ȸ���д��ģʽȷ��pos��λ��
+	//首先根据写入模式确定pos的位置
 	if(file->mode){
 		pos=file->f_pos;
 	}else{
 		pos=inode->i_size;
 	}
 
-	//֮���ж�д�����ݺ��ļ���С�᲻��Խ��
+	//之后判断写入数据后文件大小会不会越界
 	if(pos+count > FBLK_NUM*BLOCK_SIZE){
 		return 0;
 	}
 	while(i<count){
-		//���Ҫд��Ŀ鲻�����Ҵ���ʧ�ܣ����˳�ѭ��
+		//如果要写入的块不存在且创建失败，则退出循环
 		if(!(nr=bmap(inode,pos/BLOCK_SIZE,1))){
 			break;
 		}
-		int offset=pos%BLOCK_SIZE; //Ҫд���λ���ڿ��е�ƫ����
-		int chars=min(BLOCK_SIZE-offset,count-i); //��Ҫ�ڵ�ǰ����д������ֽ�
-		//���д��ʧ�ܣ���ֱ���˳�ѭ��
+		int offset=pos%BLOCK_SIZE; //要写入的位置在块中的偏移量
+		int chars=min(BLOCK_SIZE-offset,count-i); //需要在当前块中写入多少字节
+		//如果写入失败，则直接退出循环
 		if(!block_write(nr, offset, chars, buf+i)){
 			break;
 		}
@@ -417,54 +417,55 @@ int writeFile(void *v_buf, int count, iNode *inode, myFile *file)
 		i+=chars;
 	}
 	inode->mtime=time(0);
-	//����������ļ�β�����������޸��ļ���дָ��
+	//如果不是在文件尾添加数据则修改文件读写指针
 	if(file->mode){
 		file->f_pos=pos;
 	}
 	return i;
 }
 
-//����һ�У��ӵ�ǰλ�ö������з���  ���룺������ָ�룬�ļ��ṹ��ָ��  ���أ��ɹ��������ֽ���(���������з���
+//读入一行（从当前位置读到换行符）  输入：缓冲区指针，文件结构体指针  返回：成功读出的字节数(不包括换行符）
 int fgets(void *v_buf, myFile *file)
 {
-	int count=0; //�Ѷ�����ֽ���
-	char *buf=(char *)v_buf; //Ŀ�껺����ָ��
-	char *bh; //��ʱ���뻺����ָ��
-	int nr; //��ǰ���Ŀ��
+	int count=0; //已读入的字节数
+	char *buf=(char *)v_buf; //目标缓冲区指针
+	char *bh; //临时读入缓冲区指针
+	int nr; //当前读的块号
 	while(1){
-		int offset=file->f_pos%BLOCK_SIZE; //��ָ���ڵ�ǰ���е�ƫ����
-		int chars=BLOCK_SIZE-offset; //��Ҫ�ڵ�ǰ���ж������ֽ�
+		int offset=file->f_pos%BLOCK_SIZE; //读指针在当前块中的偏移量
+		int chars=BLOCK_SIZE-offset; //需要在当前块中读多少字节
 		bh = (char*)malloc(chars + 1);
-		if(!(nr=bmap(file->f_iNode,file->f_pos/BLOCK_SIZE,0) || !block_read(nr, offset, chars, bh)){
+		if(!(nr=bmap(file->f_iNode,file->f_pos/BLOCK_SIZE,0)) || !block_read(nr, offset, chars, bh)){
 			break;
 		}
-		//����������ַ�
-		for(int i=0; i<chars; i++){
+		//遍历读入的字符
+		int i;
+		for( i=0; i<chars; i++){
 			char c=*(bh+i);
 			if(c=='\n'){
 				*(bh+i)='\0';
 				break;
 			}
 		}
-		//����ʱ�����������ݶ���Ŀ�껺��
+		//把临时缓冲区的内容读入目标缓冲
 		strcpy(buf+count, bh);
 		count+=i;
 		file->f_pos+=i;
-		if(i!=chars){ //˵�������˻��з�
-			file->f_pos++; //��ָ���Ƶ����з�֮��
+		if(i!=chars){ //说明读到了换行符
+			file->f_pos++; //读指针移到换行符之后
 			break;
 		}
 	}
 	return count;
 }
 
-//��׼���ļ�  ���룺������ָ�롢�����ֽ������ļ��ṹ��ָ��  ���أ��ɹ��������ֽ���
+//标准读文件  输入：缓冲区指针、欲读字节数、文件结构体指针  返回：成功读出的字节数
 int Fread(void* buf, int count, myFile* file)
 {
 	return readFile(buf, count, file->f_iNode, file);
 }
 
-//��׼д�ļ�  ���룺������ָ�롢��д�ֽ������ļ��ṹ��ָ��  ���أ��ɹ�д����ֽ���
+//标准写文件  输入：缓冲区指针、欲写字节数、文件结构体指针  返回：成功写入的字节数
 int Fwrite(void* buf, int count, myFile* file)
 {
 	if(file->mode==2){
@@ -474,10 +475,10 @@ int Fwrite(void* buf, int count, myFile* file)
 	return writeFile(buf, count, file->f_iNode, file);
 }
 
-//�޸ĵ�ǰĿ¼���ļ���  ���룺ԭ�������ơ����ڵ�����  ������ɹ�����1��ʧ�ܷ���0
+//修改当前目录下文件名  输入：原来的名称、现在的名称  输出：成功返回1，失败返回0
 int rename(string name, string now)
 {
-	if(now.size()==0 || now.size()>NAME_LEN || now.find('/')!=string::npos){ //Ҫ�ĵ�����Ϊ�ա�����������ָ��
+	if(now.size()==0 || now.size()>NAME_LEN || now.find('/')!=string::npos){ //要改的名称为空、过长或包含分割符
 		return 0;
 	}
 	dir_entry *dir;
@@ -490,13 +491,13 @@ int rename(string name, string now)
 	return add_entry(pwd,de,now,nr);
 }
 
-//Ŀ¼����  ���룺��  ���أ���ǰĿ¼������Ŀ¼������
+//目录遍历  输入：无  返回：当前目录的所有目录项内容
 vector<vector<string> > dir_ls()
 {
 	vector<vector<string> > v;
 
 	iNode *inode=pwd;
-	int num=(inode->i_size)/sizeof(dir_entry); //num��ʾ��Ŀ¼���м���Ŀ¼��
+	int num=(inode->i_size)/sizeof(dir_entry); //num表示此目录下有几个目录项
 	dir_entry* dir = (dir_entry*)malloc(sizeof(dir_entry)*num);
 	if(!readFile(dir,inode->i_size,inode,0)){
 		return v;
@@ -523,7 +524,7 @@ vector<vector<string> > dir_ls()
 	return v;
 }
 
-//�л���ǰĿ¼  ���룺Ҫ�л�����Ŀ¼  ���أ��ɹ�����1��ʧ�ܷ���0
+//切换当前目录  输入：要切换到的目录  返回：成功返回1，失败返回0
 int dir_cd(string path)
 {
 	string name;
@@ -536,10 +537,10 @@ int dir_cd(string path)
 	int nr=dir[de].iNode_no;
 	iNode *inode=iget(nr);
 	free(dir);
-	if (!inode) return 0; //���û�гɹ��ҵ���·����inode�������
+	if (!inode) return 0; //如果没有成功找到新路径的inode，则出错
 	if (inode->i_mode){
 		iput(inode);
-		return 0; //�����inode��Ӧ����һ����ͨ�ļ��������
+		return 0; //如果此inode对应的是一个普通文件，则出错
 	}
 	iput(pwd);
 	pwd = inode;
