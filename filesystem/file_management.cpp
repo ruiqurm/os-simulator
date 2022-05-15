@@ -207,7 +207,7 @@ myFile *openFile(iNode *inode, int mode)
 iNode *createFile(iNode *father, string name, int type)
 {
 	iNode *inode=new_iNode();
-	if(inode->i_num==-1) return NULL;
+	if(!inode) return NULL;
 	inode->i_mode=type;
 	inode->i_dirt=1;
 	if(father->i_size/ENTRY_SIZE==DIR_NUM || !add_entry(father,father->i_size/ENTRY_SIZE,name,inode->i_num)){
