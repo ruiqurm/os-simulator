@@ -52,7 +52,7 @@ bool block_read(int blockSeq, int offset, int charNum, char* buf);
 
 // 申请一个iNode,返回iNode指针;指针中的i_num是iNode编号;如果i_num为-1说明无空闲iNode块
 iNode* new_iNode();
-// 释放一个iNode
+// 释放一个iNode,根据参数中的inode->i_num释放磁盘中的iNode节点,并释放参数中的iNode指针
 void free_iNode(iNode* inode);
 // 读iNode,即根据参数中的inode->i_num在磁盘对应位置读出该iNode的全部数据;返回true代表操作成功
 bool read_iNode(iNode* inode);
