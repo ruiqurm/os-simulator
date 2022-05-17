@@ -30,13 +30,12 @@ typedef struct cmd {//指令格式
 	int time;//指令运行的时间
 	int num;//指令对应的编码
 	int num2;//需要唤醒或阻塞的进程PID，文件size或申请的设备代码
-	//char* path;
-	string path;
+	string path;//创建或删除文件的路径
 }cmd;
 
 typedef struct PCB {
 	int PID;//进程
-	int	state; //进程状态
+	int state; //进程状态
 	int size;//进程所需内存
 	int dataSize;//进程数据所占内存
 	int nowSize;//进程剩余内存
