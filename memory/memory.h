@@ -5,14 +5,14 @@ typedef unsigned int v_address;
 typedef unsigned int p_address;
 typedef unsigned int page;
 #define PAGE_TABLE_SIZE 1024*128
-#define V_PAGE_USE_SIZE 128
-#define PAGE_SIZE 4 * 1024
-#define P_PAGE_USE_SIZE 32
+#define V_PAGE_USE_SIZE 16*1024
+#define PAGE_SIZE 4096
+#define P_PAGE_USE_SIZE 4*1024
 #define USE_RECORD_SIZE 1024*16
 #define FULL (1<<24)-1
 #define SWAP_SIZE 4 * 1024
 #define SWAP_START 1024 * 1024 * 128
-#define MEMORY_SIZE 1024 * 1024 * 128
+#define MEMORY_SIZE 1024 * 1024 * 132
 #define page_bit unsigned char
 #define DISK_SIZE 1024 * 1024 * 512
 struct pagetable_item {
@@ -30,7 +30,11 @@ struct memory_use {
 	m_size size;
 };
 
-atom_data read_memory(p_address);
-void write_memory(atom_data, p_address);
-int free(v_address addr, m_pid pid);
-int alloc(v_address* addr, m_size size, m_pid pid);
+void init();
+int read(atom_data* data, v_address address, m_pid pid);
+
+int write(atom_data data, v_address address, m_pid pid);
+
+int alloc(v_address* address, m_size size, m_pid pid);
+
+int free(v_address address, m_pid pid);
