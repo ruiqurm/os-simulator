@@ -6,16 +6,15 @@
 #include <stack>  
 #include<map>
 #include<vector>
-#include "windows.h"
 #include "../memory/memory.h"
 
 
-#define READY 0 //¶¨Òå¸÷ÖÖ×´Ì¬´ú±íµÄÊıÖµ
+#define READY 0 //å®šä¹‰å„ç§çŠ¶æ€ä»£è¡¨çš„æ•°å€¼
 #define RUN 1
 #define BLOCK 2
 #define END 3
 #define SUSPEND 4
-#define CREATE 0 //Ö¸ÁîµÄ±àÂë
+#define CREATE 0 //æŒ‡ä»¤çš„ç¼–ç 
 #define DELETE 1
 #define APPLY 2
 #define REALESR 3
@@ -24,31 +23,31 @@
 
 using namespace std;
 int PID = 0;
-int nowTime = 0;//µ±Ç°Ê±¼ä£¬Ä¿Ç°Î´ÉèÖÃ¸üĞÂ·½Ê½
+int nowTime = 0;//å½“å‰æ—¶é—´ï¼Œç›®å‰æœªè®¾ç½®æ›´æ–°æ–¹å¼
 typedef struct cmd {
 	int time;
-	int num;//Ö¸Áî¶ÔÓ¦µÄ±àÂë
-	int num2;//ĞèÒª»½ĞÑ»ò×èÈûµÄ½ø³ÌPID£¬ÎÄ¼şsize»òÉêÇëµÄÉè±¸´úÂë
+	int num;//æŒ‡ä»¤å¯¹åº”çš„ç¼–ç 
+	int num2;//éœ€è¦å”¤é†’æˆ–é˜»å¡çš„è¿›ç¨‹PIDï¼Œæ–‡ä»¶sizeæˆ–ç”³è¯·çš„è®¾å¤‡ä»£ç 
 	//char* path;
 	string path;
 }cmd;
 
 typedef struct PCB {
-	int PID;//½ø³Ì
-	int	state; //½ø³Ì×´Ì¬
-	int size;//½ø³ÌËùĞèÄÚ´æ
-	int dataSize;//½ø³ÌÊı¾İËùÕ¼ÄÚ´æ
-	int nowSize;//½ø³ÌÊ£ÓàÄÚ´æ
-	//char* path;//½ø³ÌÎÄ¼şÂ·¾¶
-	string path;//½ø³ÌÎÄ¼şÂ·¾¶
-	// myFile* myFile; // ½ø³ÌÎÄ¼şÂ·¾¶Ö¸Õë
+	int PID;//è¿›ç¨‹
+	int	state; //è¿›ç¨‹çŠ¶æ€
+	int size;//è¿›ç¨‹æ‰€éœ€å†…å­˜
+	int dataSize;//è¿›ç¨‹æ•°æ®æ‰€å å†…å­˜
+	int nowSize;//è¿›ç¨‹å‰©ä½™å†…å­˜
+	//char* path;//è¿›ç¨‹æ–‡ä»¶è·¯å¾„
+	string path;//è¿›ç¨‹æ–‡ä»¶è·¯å¾„
+	// myFile* myFile; // è¿›ç¨‹æ–‡ä»¶è·¯å¾„æŒ‡é’ˆ
 	FILE* myFile;
-	int arriveTime; // ½ø³Ìµ½´ïÊ±¼ä
-	int needTime; // ½ø³Ì×Ü¹²ĞèÒªÔËĞĞµÄÊ±¼ä
-	int remainTime; // ½ø³Ì»¹ĞèÔËĞĞµÄÊ±¼ä
-	int finalTime; // ½ø³ÌÔËĞĞ½áÊøµÄÊ±¼ä
-	stack<cmd> cmdStack; // Ö¸ÁîÕ»
-	v_address address;   //ĞéÄâµØÖ·
+	int arriveTime; // è¿›ç¨‹åˆ°è¾¾æ—¶é—´
+	int needTime; // è¿›ç¨‹æ€»å…±éœ€è¦è¿è¡Œçš„æ—¶é—´
+	int remainTime; // è¿›ç¨‹è¿˜éœ€è¿è¡Œçš„æ—¶é—´
+	int finalTime; // è¿›ç¨‹è¿è¡Œç»“æŸçš„æ—¶é—´
+	stack<cmd> cmdStack; // æŒ‡ä»¤æ ˆ
+	v_address address;   //è™šæ‹Ÿåœ°å€
 }PCB;
 
 // stack<PCB> readStack;
