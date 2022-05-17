@@ -3,9 +3,11 @@
 //TODO:进程管理缺少第一个进程
 //TODO:将PCB再次存入内存模块
 
-map<int, PCB> proMap;
-vector<PCB> endVector;
-vector<PCB> readVector;
+map<int, PCB> proMap;//存储未结束的所有PCB信息
+vector<PCB> endVector;//存储已经结束的PCB信息
+vector<PCB> readVector;//存储reafy状态的PCB信息
+int PID = 0;
+int nowTime = 0;//当前时间
 
 int createPID(){
 	return ++PID;
