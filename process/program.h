@@ -7,6 +7,9 @@
 #include<map>
 #include<vector>
 #include "../memory/memory.h"
+#include "../filesystem/file_management.h"
+#include "../interupt/interupt.h"
+#include "../device/device.h"
 
 
 #define READY 0 //定义各种状态代表的数值
@@ -40,8 +43,8 @@ typedef struct PCB {
 	int nowSize;//进程剩余内存
 	//char* path;//进程文件路径
 	string path;//进程文件路径
-	// myFile* myFile; // 进程文件路径指针
-	FILE* myFile;
+	myFile* myFile; // 进程文件路径指针
+	//FILE* myFile;
 	int arriveTime; // 进程到达时间
 	int needTime; // 进程总共需要运行的时间
 	int remainTime; // 进程还需运行的时间
@@ -54,3 +57,16 @@ typedef struct PCB {
 map<int, PCB> proMap;
 vector<PCB> endVector;
 vector<PCB> readVector;
+
+
+
+int getCmd(PCB* newPCB);//输入指令内容
+int testPCB(PCB* newPCB);//测试PCB内的数据有无问题
+int create(string path);//创建进程，返回1创建成功，0失败
+void eraseRead(int PID);//删除readVector中对应PID的PCB
+int wakeup(int PID);//wakeup进程，返回1 wakeup成功，0失败
+int suspend(int PID, v_address address);//suspend进程，返回1 suspend成功，0失败
+int active(int PID);//active进程，返回1 active成功，0失败
+int stop(int PID, v_address address);//stop进程，返回1 stop成功，0失败
+int runCmd(PCB* runPCB);//运行进程的指令，如无中断等情况则返回1，否则返回0
+void run();//需要定期调用此进程
