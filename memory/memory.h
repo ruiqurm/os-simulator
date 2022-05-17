@@ -32,3 +32,5 @@ struct memory_use {
 
 atom_data read_memory(p_address);
 void write_memory(atom_data, p_address);
+int free(v_address addr, m_pid pid);
+int alloc(v_address* addr, m_size size, m_pid pid);
