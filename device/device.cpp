@@ -145,10 +145,11 @@ int new_block() {
 	fseek(disk, dataBitMapStart * blockSize, SEEK_SET);
 	fwrite(dataBitMap, sizeof(char), maxDataBlockNum, disk);
 	fclose(disk);
+	free(dataBitMap);
 	if (position == -1) {
 		cout << "无空闲数据块" << endl;
+		return 0;
 	}
-	free(dataBitMap);
 	return position;
 }
 void free_block(int blockSeq) {
@@ -211,11 +212,13 @@ iNode* new_iNode() {
 	fseek(disk, dataBitMapStart * blockSize, SEEK_SET);
 	fwrite(iNodeBitMap, sizeof(char), maxFileNum, disk);
 	fclose(disk);
-	if (position == -1) {
-		cout << "无空闲iNode";
-	}
 	ptr->i_num = position;
 	free(iNodeBitMap);
+	if (position == -1) {
+		cout << "无空闲iNode";
+		free(ptr);
+		return nullptr;
+	}
 	return ptr;
 }
 void free_iNode(iNode* inode) {
