@@ -55,9 +55,9 @@ typedef struct PCB {
 }PCB;
 
 // stack<PCB> readStack;
-map<int, PCB> proMap;
-vector<PCB> endVector;
-vector<PCB> readVector;
+extern map<int, PCB> proMap;
+extern vector<PCB> endVector;
+extern vector<PCB> readVector;
 
 
 
