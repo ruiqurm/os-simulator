@@ -1,5 +1,12 @@
 #include "file_management.h"
+#include "../device/device.h"
 using namespace std;
+
+/*全局变量*/
+iNode iNode_table[INODE_NUM];    //iNode table的数组，数组下标对应iNode编号
+myFile file_table[NR_FILE];      //系统文件表数组
+iNode* pwd;                      //当前工作目录i节点指针
+iNode* root;   					 //当前的根目录i节点指针
 
 //将文件长度截为0  输入：文件的inode指针  输出：无
 void truncate(iNode *inode)
@@ -285,7 +292,7 @@ int DeleteFile(string path)
 		strcpy(dir[i].file_name,dir[i+1].file_name);
 	}
 	myFile *file=openFile(father,0);
-	int ret=writeFile(dir,(num-1)*ENTRY_SIZE,father,file);
+	ret=writeFile(dir,(num-1)*ENTRY_SIZE,father,file);
 	father->mtime=time(0);
 	if(!inode->i_mode) father->nlinks--; //如果要删除的是目录，则父目录链接数减1
 	father->i_dirt=1;

@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 #include <ctime>
-#include "../device/device.h"
 using namespace std;
 
 
@@ -21,7 +20,7 @@ using namespace std;
 #define NR_FILE 64       //系统文件表中最大项数
 #define NR_OPEN 20       //一个进程最多打开的文件数
 #define ENTRY_SIZE 32    //一个目录项的大小
-
+#define blockSize 64 //每个物理块大小为64字节
 
 /*重要数据结构*/
 
@@ -57,10 +56,10 @@ typedef struct FILE
 
 
 /*全局变量*/
-iNode iNode_table[INODE_NUM];    //iNode table的数组，数组下标对应iNode编号
-myFile file_table[NR_FILE];      //系统文件表数组
-iNode* pwd;                      //当前工作目录i节点指针
-iNode* root;   					 //当前的根目录i节点指针
+extern iNode iNode_table[INODE_NUM];    //iNode table的数组，数组下标对应iNode编号
+extern myFile file_table[NR_FILE];      //系统文件表数组
+extern iNode* pwd;                      //当前工作目录i节点指针
+extern iNode* root;   					 //当前的根目录i节点指针
 
 
 /*内部函数声明*/

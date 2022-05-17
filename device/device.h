@@ -10,7 +10,6 @@ using namespace std;
 #define diskname "disk.txt"
 #define maxDataBlockNum 1024 //最多1024个物理块
 #define maxBlockNum (1024 + 132)
-#define blockSize 64 //每个物理块大小为64字节
 #define maxFileNum 256 //最多文件数量、最大inode数量
 #define maxFileSize 256 //每个文件的最大大小
 #define blockNumInOneFile (maxFileSize / blockSize) //每个文件占用物理块数
