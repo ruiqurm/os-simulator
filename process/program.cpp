@@ -2,6 +2,11 @@
 //TODO：未加其他模块的头文件 
 //TODO:进程管理缺少第一个进程
 //TODO:将PCB再次存入内存模块
+
+map<int, PCB> proMap;
+vector<PCB> endVector;
+vector<PCB> readVector;
+
 int createPID(){
 	return ++PID;
 }
