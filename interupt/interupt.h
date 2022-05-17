@@ -1,4 +1,6 @@
 #include<mutex>
+#include<vector>
+#include "../process/program.h"
 using std::mutex;
 
 /// 中断类型
@@ -73,3 +75,7 @@ struct InteruptSnapshot {
 };
 /// 给前端
 InteruptSnapshot get_interupt_snapshot();
+void awake_on_external_interupt(InteruptType t, int device, int64_t value) {
+	int pid = static_cast<int>(value);
+	wakeup(pid);
+}
