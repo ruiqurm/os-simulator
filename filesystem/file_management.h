@@ -46,7 +46,7 @@ typedef struct DIR_ENTRY
 } dir_entry;
 
 //文件结构体
-typedef struct FILE
+typedef struct m_FILE
 {
 	int mode;                    //写入模式（0为追加，1为从当前位置写入，2为覆盖）
 	unsigned short f_count;		 //对应文件引用计数值
