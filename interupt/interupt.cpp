@@ -135,7 +135,7 @@ void init_interupt() {
 					std::chrono::milliseconds(TIMER_INTERUPT_INTERVAL));
 			}
 		}).detach();
-
+	set_handler(InteruptType::EXTERNAL_1, awake_on_external_interupt);
 }
 void enable_timer() {
 	timer_is_valid.store(true);
