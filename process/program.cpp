@@ -1,6 +1,4 @@
 #include"program.h"
-#include "memory.h"
-#include "../interupt/interupt.h"
 //TODO：未加其他模块的头文件 
 //TODO:进程管理缺少第一个进程
 //TODO:将PCB再次存入内存模块
@@ -90,7 +88,7 @@ int create(string path){//创建进程，返回1创建成功，0失败
 		return 0;
 	}
 	CloseFile(f);
-	if (alloc(newPCB.address, newPCB.size, newPCB.PID) != 0 ) {
+	if (alloc(&(newPCB.address), newPCB.size, newPCB.PID) != 0 ) {
 		printf("内存分配失败");//内存分配失败	
 		return 0;
 	}
@@ -152,7 +150,7 @@ int suspend(int PID, v_address address) {//suspend进程，返回1 suspend成功
 int active(int PID) {//active进程，返回1 active成功，0失败
 	if (proMap.find(PID) != proMap.end()) {
 		if (proMap[PID].state = SUSPEND) {
-			if(alloc(newPCB.address, newPCB.size, newPCB.PID)) {
+			if(alloc(&(proMap[PID].address), proMap[PID].size, proMap[PID].PID)) {
 				printf("内存分配失败\n");//内存分配失败	
 				return 0;
 			}
@@ -207,13 +205,13 @@ int runCmd(PCB *runPCB) {//运行进程的指令，如无中断等情况则返�
 			printf("删除文件\n");
 			break;
 		case APPLY://申请设备
-			if (!acquire(runPCB.PID, nowCmd.num2)) {//如果申请设备失败
-				block(runPCB.PID);
+			if (!acquire(runPCB->PID, nowCmd.num2)) {//如果申请设备失败
+				block(runPCB->PID);
 			}
 			printf("申请设备\n");
 			break;
 		case REALESR://释放设备
-			release(runPCB.PID, nowCmd.num2);
+			release(runPCB->PID, nowCmd.num2);
 			printf("释放设备\n");
 			break;
 		case BLOCKCMD://阻塞其他进程
@@ -248,17 +246,4 @@ void run() {
 	}
 	printf("%d\n", nowTime);
 	nowTime++;
-}
-int main() {
-	create("C:\\Users\\86131\\Desktop\\1.txt");
-	create("C:\\Users\\86131\\Desktop\\2.txt");
-	create("C:\\Users\\86131\\Desktop\\1.txt");
-	create("C:\\Users\\86131\\Desktop\\3.txt");
-	create("C:\\Users\\86131\\Desktop\\2.txt");
-	init_interupt();
-	enable_timer();
-	for (int i = 0; i < 100; i++) {
-		run();
-		Sleep(200);
-	}
 }
