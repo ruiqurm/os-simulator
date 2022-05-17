@@ -26,8 +26,6 @@
 #define WAKE 5
 
 using namespace std;
-int PID = 0;
-int nowTime = 0;//当前时间，目前未设置更新方式
 typedef struct cmd {
 	int time;
 	int num;//指令对应的编码
