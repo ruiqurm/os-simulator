@@ -10,7 +10,7 @@ int createPID(){
 int getCmd(PCB *newPCB) {//输入指令内容
 	int buf[3];
 	// fscanf(newPCB->myFile, "%d%d%d", &buf[0], &buf[1], &buf[2])
-	while (Fread(buf, sizeof(buf), newPCB.myFile)) {
+	while (Fread(buf, sizeof(buf), newPCB->myFile)) {
 		if (buf[0] == -1)break;//当指令为-1时代表退出
 		cmd newCmd;
 		newCmd.time = buf[0];
