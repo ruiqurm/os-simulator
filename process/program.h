@@ -26,8 +26,8 @@
 #define WAKE 5
 
 using namespace std;
-typedef struct cmd {
-	int time;
+typedef struct cmd {//指令格式
+	int time;//指令运行的时间
 	int num;//指令对应的编码
 	int num2;//需要唤醒或阻塞的进程PID，文件size或申请的设备代码
 	//char* path;
@@ -52,10 +52,9 @@ typedef struct PCB {
 	v_address address;   //虚拟地址
 }PCB;
 
-// stack<PCB> readStack;
-extern map<int, PCB> proMap;
-extern vector<PCB> endVector;
-extern vector<PCB> readVector;
+extern map<int, PCB> proMap;//存储未结束的所有PCB信息
+extern vector<PCB> endVector;//存储已经结束的PCB信息
+extern vector<PCB> readVector;//存储reafy状态的PCB信息
 
 
 
