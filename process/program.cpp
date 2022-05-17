@@ -1,7 +1,5 @@
 #include"program.h"
-//TODO：未加其他模块的头文件 
-//TODO:进程管理缺少第一个进程
-//TODO:将PCB再次存入内存模块
+
 
 map<int, PCB> proMap;//存储未结束的所有PCB信息
 vector<PCB> endVector;//存储已经结束的PCB信息
@@ -205,30 +203,32 @@ int runCmd(PCB *runPCB) {//运行进程的指令，如无中断等情况则返�
 		{
 		case CREATE://创建文件
 			CreateFile(nowCmd.path, nowCmd.num2);
-			printf("创建文件\n");
+			printf("创建文件");
 			break;
 		case DELETE://删除文件
 			DeleteFile(nowCmd.path);
-			printf("删除文件\n");
+			printf("删除文件");
 			break;
 		case APPLY://申请设备
 			if (!acquire(runPCB->PID, nowCmd.num2)) {//如果申请设备失败
 				block(runPCB->PID);
 			}
-			printf("申请设备\n");
+			printf("申请设备");
 			break;
 		case REALESR://释放设备
 			release(runPCB->PID, nowCmd.num2);
-			printf("释放设备\n");
+			printf("释放设备");
 			break;
 		case BLOCKCMD://阻塞其他进程
 			block(nowCmd.num2);
+			printf("block:%d",nowCmd.num2);
 			break;
 		case WAKE://唤醒其他进程
 			wakeup(nowCmd.num2);
+			printf("wakeup:%d",nowCmd.num2);
 			break;
 		default:
-			printf("指令输入出错\n");//指令输入出错
+			printf("指令输入出错");//指令输入出错
 			break;
 		}
 		handle_interupt();
@@ -238,8 +238,10 @@ int runCmd(PCB *runPCB) {//运行进程的指令，如无中断等情况则返�
 
 void run() {
 	//需要定期调用此进程
+	printf("nowTime：%d ", nowTime);
 	if (!readVector.empty()) {
 		PCB runPCB = readVector[0];
+		printf("running process PID：%d needTime：%d ", runPCB.PID, runPCB.remainTime);
 		readVector.erase(readVector.begin());
 		if (!runCmd(&runPCB))return;
 		runPCB.remainTime--;
@@ -249,8 +251,7 @@ void run() {
 		else {
 			readVector.insert(readVector.end(), runPCB);
 		}
-		printf("%d ", runPCB.PID);
-	}
-	printf("%d\n", nowTime);
+	}	
+	printf("\n");
 	nowTime++;
 }
