@@ -48,11 +48,15 @@ typedef INODEINDISK iNodeInDisk;
 void log(string s);
 void log(int a);
 
+// --------------测试接口--------------
 // 读取超级块
 void read_sup();
 // 读取前十个位图
 void read_map(int flag);
+// 读取物理块
+void br(int num, char* buf);
 
+// --------------外部接口--------------
 //展示所有设备状态
 void showDevice();
 //进程申请设备,返回true代表申请成功,返回false代表设备已被占用,进程加入等待队列
@@ -80,5 +84,3 @@ void free_iNode(iNode* inode);
 bool read_iNode(iNode* inode);
 // 写iNode,即根据参数中的inode->i_num在磁盘对应位置写入该iNode的全部数据;返回true代表操作成功
 bool write_iNode(iNode* inode);
-
-void br(int num, char* buf);
