@@ -200,6 +200,7 @@ void disk_init(int flag) {
 		inode->i_mode=0;
 		inode->i_size=64;
 		inode->nlinks=2;
+		inode->mtime=time(0);
 		inode->i_zone[0]=new_block();
 		write_iNode(inode);
 		dir_entry *d=(dir_entry *)malloc(2*sizeof(dir_entry));
