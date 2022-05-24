@@ -506,9 +506,11 @@ vector<vector<string> > dir_ls()
 	iNode *inode=pwd;
 	int num=(inode->i_size)/sizeof(dir_entry); //num表示此目录下有几个目录项
 	dir_entry* dir = (dir_entry*)malloc(sizeof(dir_entry)*num);
-	if(!readFile(dir,inode->i_size,inode,0)){
+	myFile *file=openFile(inode,0);
+	if(!readFile(dir,inode->i_size,inode,file)){
 		return v;
 	}
+	CloseFile(file);
 	for(int i=0; i<num; i++){
 		string name=dir[i].file_name;
 		string date="";
