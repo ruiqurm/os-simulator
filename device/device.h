@@ -34,7 +34,7 @@ typedef struct superBlock {  //超级块结构
 	unsigned long maxfilesize; //文件的最大长度
 }superBlock;
 
-static struct INODEINDISK
+struct INODEINDISK
 {
 	unsigned short i_mode;		 //文件类型：0目录，1普通
 	int i_size;				     //文件大小（字节数）
