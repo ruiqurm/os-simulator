@@ -166,9 +166,6 @@ void disk_init(int flag) {
 		//初始化iNode
 		iNodeInDisk* iNodes = (iNodeInDisk*)malloc(iNodeSize * maxFileNum);
 		if (!iNodes) { log(1); exit(1); }
-		for (int i = 0; i < maxFileNum; i++) {
-			init_iNode(iNodes + i);
-		}
 
 		//写入磁盘
 		disk = fopen(diskname, "rb+");
@@ -197,6 +194,20 @@ void disk_init(int flag) {
 		fread(&iNode_table, maxFileNum * sizeof(iNode), 1, disk);
 		fclose(disk);
 		*/
+
+		//初始化根目录
+		iNode *inode=new_iNode();
+		inode->i_mode=0;
+		inode->i_size=64;
+		inode->nlinks=2;
+		inode->i_zone[0]=new_block();
+		write_iNode(inode);
+		dir_entry *d=(dir_entry *)malloc(2*sizeof(dir_entry));
+		strcpy(d[0].file_name,".");
+		d[0].iNode_no=inode->i_num;
+		strcpy(d[1].file_name,"..");
+		d[1].iNode_no=inode->i_num;
+		block_write(inode->i_zone[0],0,blockSize,(char *)d);
 	}
 }
 
