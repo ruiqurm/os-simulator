@@ -166,9 +166,6 @@ void disk_init(int flag) {
 		//初始化iNode
 		iNodeInDisk* iNodes = (iNodeInDisk*)malloc(iNodeSize * maxFileNum);
 		if (!iNodes) { log(1); exit(1); }
-		for (int i = 0; i < maxFileNum; i++) {
-			init_iNode(iNodes + i);
-		}
 
 		//写入磁盘
 		disk = fopen(diskname, "rb+");
