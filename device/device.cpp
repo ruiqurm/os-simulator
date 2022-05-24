@@ -130,7 +130,8 @@ void disk_init(int flag) {
 	if (!logptr) { log(2); exit(1); }
 	fclose(logptr);
 
-	if (flag == 1) { // 之前未初始化过磁盘
+	ifstream f(diskname);
+	if (!f.good() || flag == 1) { // 之前未初始化过磁盘
 		FILE* disk = fopen(diskname, "wb");
 		if (!disk) { log(3); exit(1); }
 		char* buf = (char*)malloc(blockSize * maxBlockNum);
