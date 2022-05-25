@@ -326,7 +326,7 @@ int DeleteFile(string path)
 		dir[i]=dir[i+1];
 		strcpy(dir[i].file_name,dir[i+1].file_name);
 	}
-	myFile *file=openFile(father,0);
+	myFile *file=openFile(father,2);
 	father->i_count++;
 	ret=writeFile(dir,(num-1)*ENTRY_SIZE,father,file);
 	//释放父目录文件中的数据块
