@@ -80,7 +80,7 @@ iNode *iget(int nr);
 iNode *get_empty_inode();
 
 //从目录表中找目录项  输入：目录inode指针、文件名、目录项指针  返回：成功返回1，失败返回0
-int find_entry(iNode *inode, string name, dir_entry* dir, int &de);
+int find_entry(iNode *inode, string name, dir_entry* &dir, int &de);
 
 //在目录表的某位置加一个新目录项  输入：目录表节点指针，目录项编号，要写入的名字，要写入的节点编号  返回：成功返回1，失败返回0
 int add_entry(iNode *inode, int de, string name, unsigned int nr);
@@ -91,8 +91,8 @@ int namei(string path, iNode** father, string& filename);
 //文件系统内部打开文件  输入：文件inode指针、写入模式（0为追加，1为从当前位置写入，2为覆盖） 返回：返回文件结构体指针  
 myFile *openFile(iNode *inode, int mode);
 
-//文件系统内部创建文件  输入：文件父目录的inode指针、文件名、文件类型  返回：文件的inode指针
-iNode *createFile(iNode *father, string name, int type);
+//文件系统内部创建文件  输入：文件父目录的inode指针、文件名、文件类型  返回：文件的inode号
+int createFile(iNode *father, string name, int type);
 
 //读文件  输入：缓冲区指针、欲读字节数、文件inode指针、读写指针位置  返回：成功读出的字节数
 int readFile(void *v_buf, int count, iNode *inode, myFile *file);
@@ -105,6 +105,9 @@ int writeFile(void *v_buf, int count, iNode *inode, myFile *file);
 
 //文件系统初始化  输入：无  返回：成功返回1，失败返回0
 int init_filesystem();
+
+//系统结束调用  输入：无  返回：无
+void end_filesystem();
 
 //创建文件  输入：文件路径、文件类型（0表示目录文件，1表示普通文件）  返回：成功返回1，失败返回0
 int CreateFile(string path, int type);
@@ -128,7 +131,7 @@ int Fread(void* buf, int count, myFile* file);
 int Fwrite(void* buf, int count, myFile* file);
 
 //修改当前目录下文件名  输入：原来的名称、现在的名称  输出：成功返回1，失败返回0
-int rename(string name, string now);
+int rename1(string name, string now);
 
 //目录遍历  输入：无  返回：当前目录的所有目录项内容
 vector<vector<string> > dir_ls();

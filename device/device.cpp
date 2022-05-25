@@ -9,7 +9,7 @@ void log(string s) {
 	s += '\n';
 	FILE* fp = fopen(logname, "a");
 	if (fp == nullptr) {
-		log("无法打开文件" + string(logname));
+		log("can not open file " + string(logname));
 		exit(1);
 	}
 	fwrite(s.c_str(), sizeof(char), s.length(), fp);
@@ -18,19 +18,19 @@ void log(string s) {
 void log(int a) {
 	FILE* fp = fopen(logname, "a");
 	if (fp == nullptr) {
-		log("无法打开文件" + string(logname));
+		log("can not open file " + string(logname));
 		exit(1);
 	}
 	string s;
 	switch (a) {
 	case 1:
-		s = string("malloc申请空间失败");
+		s = string("malloc space failed");
 		break;
 	case 2:
-		log("无法打开文件" + string(logname));
+		log("can not open file " + string(logname));
 		break;
 	case 3:
-		log("无法打开文件" + string(diskname));
+		log("can not open file " + string(diskname));
 		break;
 	}
 	fwrite(s.c_str(), sizeof(char), s.length(), fp);
@@ -64,7 +64,7 @@ bool acquire(long pid, int device) {
 	for (auto ptr = allDevice[device].begin(); ptr != allDevice[device].end(); ptr++) {
 		if (*ptr == pid) {
 			string e;
-			e = "进程" + to_string(pid) + "重复申请" + deviceName[device] + ",申请设备操作失败";
+			e = "process" + to_string(pid) + " repeat acquiring " + deviceName[device] + ", acquiring device failed";
 			log(e);
 			return false;
 		}
@@ -72,7 +72,7 @@ bool acquire(long pid, int device) {
 	allDevice[device].push_back(pid);
 	if (allDevice[device].size() > 1) {
 		string w;
-		w = "进程" + to_string(pid) + "申请" + deviceName[device] + "并进入等待队列";
+		w = "process" + to_string(pid) + " acquire " + deviceName[device] + " and enter waiting queue";
 		log(w);
 		return false; // 进程加入等待队列
 	}
@@ -108,7 +108,7 @@ bool release(long pid, int device) {
 	}
 	
 	string e;
-	e = "进程" + to_string(pid) + "未申请过" + deviceName[device] + ",释放设备操作失败";
+	e = "process" + to_string(pid) + " has not acquired " + deviceName[device] + ", releasing device failed";
 	log(e);
 	return false;
 }
@@ -209,6 +209,7 @@ void disk_init(int flag) {
 		strcpy(d[1].file_name,"..");
 		d[1].iNode_no=inode->i_num;
 		block_write(inode->i_zone[0],0,blockSize,(char *)d);
+		free(d);
 	}
 }
 
@@ -219,8 +220,8 @@ void read_sup() {
 	superBlock* sup = (superBlock*)malloc(sizeof(superBlock));
 	if (!sup) { log(1); exit(1); }
 	fread(sup, sizeof(superBlock), 1, disk);
-	cout << "iNode节点数 " + to_string(sup->inodeNum) + " 物理块数 " + to_string(sup->blockNum);
-	cout << " 文件最大长度 " + to_string(sup->maxfilesize) << endl;
+	cout << "iNode_number " + to_string(sup->inodeNum) + " block_number " + to_string(sup->blockNum);
+	cout << " file_max_length " + to_string(sup->maxfilesize) << endl;
 	fclose(disk);
 }
 
@@ -277,11 +278,11 @@ int new_block() {
 	fclose(disk);
 	free(dataBitMap);
 	if (position == -1) {
-		log("无空闲数据块");
+		log("no free block");
 		return 0;
 	}
 	else {
-		cout << "成功申请到逻辑块 " << position << endl;
+		cout << "get block " << position << endl;
 		return position;
 	}
 }
@@ -294,7 +295,7 @@ bool free_block(int blockSeq) {
 	fseek(disk, dataBitMapStart * blockSize, SEEK_SET);
 	fread(dataBitMap, sizeof(char), maxDataBlockNum, disk);
 	if (dataBitMap[blockSeq] == '0') {
-		log("错误：释放一个未申请的逻辑块");
+		log("error: try to release a free block");
 		return false;
 	}
 	dataBitMap[blockSeq] = '0';
@@ -308,13 +309,13 @@ bool free_block(int blockSeq) {
 	fwrite(nullBlock, blockSize, 1, disk);
 	free(nullBlock);
 
-	cout << "成功释放掉逻辑块 " << blockSeq << endl;
+	cout << "release block " << blockSeq << endl;
 	fclose(disk);
 }
 //物理块写入函数，nr是块号，offset是开始读的位置在块中的偏移量，chars是要写入的字节数，最后一个参数是缓冲区指针
 bool block_write(int blockSeq, int offset, int charNum, char* buf) {
 	if (offset + charNum > blockSize) {
-		log("写入操作过界");
+		log("write cross the border");
 		return false;
 	}
 
@@ -326,20 +327,20 @@ bool block_write(int blockSeq, int offset, int charNum, char* buf) {
 	fseek(disk, dataBitMapStart * blockSize, SEEK_SET);
 	fread(dataBitMap, sizeof(char), maxDataBlockNum, disk);
 	if (dataBitMap[blockSeq] == '0') {
-		log("发生错误，向未申请的逻辑块写入！");
+		log("error: try to write in a free block");
 		return false;
 	}
 
 	fseek(disk, (blockSeq + dataStart) * blockSize + offset, SEEK_SET);
 	fwrite(buf, sizeof(char), charNum, disk);
 	fclose(disk);
-	cout << "向逻辑块写入成功" << endl;
+	cout << "write block success" << endl;
 	return true;
 }
 //物理块读出函数，返回读出的字节大小
 bool block_read(int blockSeq, int offset, int charNum, char* buf) {
 	if (offset + charNum > blockSize) {
-		log("读取操作过界");
+		log("read cross the border");
 		return false;
 	}
 
@@ -351,14 +352,14 @@ bool block_read(int blockSeq, int offset, int charNum, char* buf) {
 	fseek(disk, dataBitMapStart * blockSize, SEEK_SET);
 	fread(dataBitMap, sizeof(char), maxDataBlockNum, disk);
 	if (dataBitMap[blockSeq] == '0') {
-		log("发生错误，读取未申请的逻辑块！");
+		log("error: try to read a free block");
 		return false;
 	}
 
 	fseek(disk, (blockSeq + dataStart) * blockSize + offset, SEEK_SET);
 	fread(buf, sizeof(char), charNum, disk);
 	fclose(disk);
-	cout << "从逻辑块读取成功" << endl;
+	cout << "read block success" << endl;
 	return true;
 }
 
@@ -393,14 +394,15 @@ iNode* new_iNode() {
 	free(iNodeBitMap);
 
 	if (position == -1) {
-		log("无空闲iNode");
+		log("no free iNode");
 		return nullptr;
 	}
 	else {
 		iNode* ptr = (iNode*)malloc(sizeof(iNode));
 		if (!ptr) { log(1); exit(1); }
+		memset(ptr,0,sizeof(iNode));
 		ptr->i_num = position;
-		cout << "成功申请到iNode块 " << position << endl;
+		cout << "get iNode " << position << endl;
 		return ptr;
 	}
 }
@@ -415,7 +417,7 @@ void free_iNode(iNode* inode) {
 	fseek(disk, iNodeBitMapStart * blockSize, SEEK_SET);
 	fread(iNodeBitMap, sizeof(char), maxFileNum, disk);
 	if (iNodeBitMap[position] == '0') {
-		log("错误：释放一个未申请的iNode块");
+		log("error: try to release a free iNode");
 		exit(1);
 	}
 	iNodeBitMap[position] = '0';
@@ -432,8 +434,8 @@ void free_iNode(iNode* inode) {
 	fwrite(nullBlock, iNodeSize, 1, disk);
 	free(nullBlock);
 
-	free(inode);
-	cout << "成功释放掉iNode块 " << position << endl;
+	//free(inode);
+	cout << "release iNode " << position << endl;
 	fclose(disk);
 }
 bool read_iNode(iNode* inode) {
@@ -447,7 +449,7 @@ bool read_iNode(iNode* inode) {
 	fseek(disk, iNodeBitMapStart * blockSize, SEEK_SET);
 	fread(iNodeBitMap, sizeof(char), maxFileNum, disk);
 	if (iNodeBitMap[position] == '0') {
-		log("错误：读取一个未申请的iNode块");
+		log("error: try to read a free iNode");
 		return false;
 	}
 	free(iNodeBitMap);
@@ -466,7 +468,7 @@ bool read_iNode(iNode* inode) {
 
 	free(temp);
 	fclose(disk);
-	cout << "读出iNode节点成功" << endl;
+	cout << "read iNode success" << endl;
 	return true;
 }
 bool write_iNode(iNode* inode) {
@@ -480,7 +482,7 @@ bool write_iNode(iNode* inode) {
 	fseek(disk, iNodeBitMapStart * blockSize, SEEK_SET);
 	fread(iNodeBitMap, sizeof(char), maxFileNum, disk);
 	if (iNodeBitMap[position] == '0') {
-		log("错误：向一个未申请的iNode块写入");
+		log("error: try to write in a free iNode");
 		return false;
 	}
 	free(iNodeBitMap);
@@ -499,6 +501,6 @@ bool write_iNode(iNode* inode) {
 
 	free(temp);
 	fclose(disk);
-	cout << "写入iNode节点成功" << endl;
+	cout << "write iNode success" << endl;
 	return true;
 }
