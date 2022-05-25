@@ -566,7 +566,7 @@ vector<vector<string> > dir_ls()
 		return v;
 	}
 	CloseFile(file);
-	for(int i=1; i<num; i++){
+	for(int i=2; i<num; i++){
 		string name=dir[i].file_name;
 		string date="";
 		string type="";
