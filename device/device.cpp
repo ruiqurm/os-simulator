@@ -99,7 +99,8 @@ bool release(long pid, int device) {
 				flag = 1;
 				allDevice[device].erase(ptr);
 				if (allDevice[device].size() != 0) { // 激活等待队列中的第一个进程
-					//raise_interupt(InteruptType::EXTERNAL_1, device, allDevice[device][0]);
+					// EXTERNAL_1，设备号，进程号
+					raise_interupt(InteruptType::EXTERNAL_1, device, allDevice[device][0]);
 					//wakeup(allDevice[device][0]);
 				}
 				return true;
@@ -131,7 +132,7 @@ void disk_init(int flag) {
 	fclose(logptr);
 
 	ifstream f(diskname);
-	if (!f.good() || flag == 1) { // 之前未初始化过磁盘
+	if (!f.good() || flag == 1) { // 之前未初始化过磁盘，或者flag=1
 		FILE* disk = fopen(diskname, "wb");
 		if (!disk) { log(3); exit(1); }
 		char* buf = (char*)malloc(blockSize * maxBlockNum);
@@ -194,21 +195,20 @@ void disk_init(int flag) {
 		fread(&iNode_table, maxFileNum * sizeof(iNode), 1, disk);
 		fclose(disk);
 		*/
-
 		//初始化根目录
-		iNode *inode=new_iNode();
-		inode->i_mode=0;
-		inode->i_size=64;
-		inode->nlinks=2;
-		inode->mtime=time(0);
-		inode->i_zone[0]=new_block();
+		iNode* inode = new_iNode();
+		inode->i_mode = 0;
+		inode->i_size = 64;
+		inode->nlinks = 2;
+		inode->mtime = time(0);
+		inode->i_zone[0] = new_block();
 		write_iNode(inode);
-		dir_entry *d=(dir_entry *)malloc(2*sizeof(dir_entry));
-		strcpy(d[0].file_name,".");
-		d[0].iNode_no=inode->i_num;
-		strcpy(d[1].file_name,"..");
-		d[1].iNode_no=inode->i_num;
-		block_write(inode->i_zone[0],0,blockSize,(char *)d);
+		dir_entry* d = (dir_entry*)malloc(2 * sizeof(dir_entry));
+		strcpy(d[0].file_name, ".");
+		d[0].iNode_no = inode->i_num;
+		strcpy(d[1].file_name, "..");
+		d[1].iNode_no = inode->i_num;
+		block_write(inode->i_zone[0], 0, blockSize, (char*)d);
 	}
 }
 
