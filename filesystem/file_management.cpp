@@ -238,9 +238,9 @@ int createFile(iNode *father, string name, int type)
 	}
 	//更改父目录
 	if(father->i_size/ENTRY_SIZE==DIR_NUM || !add_entry(father,father->i_size/ENTRY_SIZE,name,inode->i_num)){
-		inode->nlinks--;
 		free_iNode(inode);
 		free(inode);
+		if(father->i_size/ENTRY_SIZE==DIR_NUM) iput(father);
 		return 0;
 	}
 	write_iNode(inode);
@@ -281,13 +281,11 @@ int CreateFile(string path, int type)
 	if(!namei(path,&father,name)) return 0;
 	int ret=find_entry(father,name,dir,de);
 	if(ret){
-		iput(father);
 		free(dir);
 		return 0;
 	}else{
 		father->i_count++;
 		int nr=createFile(father,name,type);
-		iput(father);
 		free(dir);
 		if(nr){
 			return 1;
@@ -359,7 +357,6 @@ myFile* OpenFile(string path, int create, int mode)
 	if(!namei(path,&father,name)) return NULL;
 	int ret=find_entry(father,name,dir,de);
 	if(ret){ //此文件存在
-		iput(father);
 		int nr=dir[de].iNode_no;
 		iNode *inode=iget(nr);
 		free(dir);
@@ -374,7 +371,6 @@ myFile* OpenFile(string path, int create, int mode)
 		father->i_count++;
 		int nr=createFile(father,name,1);
 		iNode *inode=iget(nr);
-		iput(father);
 		free(dir);
 		if(inode){
 			return openFile(inode,mode);
@@ -577,6 +573,7 @@ vector<vector<string> > dir_ls()
 			date=ctime(&t->mtime);
 			type=t->i_mode?"file":"directory";
 			size=to_string(t->i_size)+"B";
+			iput(t);
 		}
 		vector<string> w;
 		w.push_back(name);
@@ -597,7 +594,6 @@ int dir_cd(string path)
 	int de;
 	if(!namei(path,&father,name)) return 0;
 	if(!find_entry(father,name,dir,de)) return 0; 
-	iput(father);
 	int nr=dir[de].iNode_no;
 	iNode *inode=iget(nr);
 	free(dir);

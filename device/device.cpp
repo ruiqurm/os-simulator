@@ -311,6 +311,7 @@ bool free_block(int blockSeq) {
 
 	cout << "release block " << blockSeq << endl;
 	fclose(disk);
+	return true;
 }
 //物理块写入函数，nr是块号，offset是开始读的位置在块中的偏移量，chars是要写入的字节数，最后一个参数是缓冲区指针
 bool block_write(int blockSeq, int offset, int charNum, char* buf) {
