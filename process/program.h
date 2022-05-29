@@ -59,7 +59,7 @@ extern vector<PCB> readVector;//存储reafy状态的PCB信息
 
 int getCmd(PCB* newPCB);//输入指令内容
 int testPCB(PCB* newPCB);//测试PCB内的数据有无问题
-int create(string path);//创建进程，返回1创建成功，0失败
+int createProc(string path);//创建进程，返回1创建成功，0失败
 void eraseRead(int PID);//删除readVector中对应PID的PCB
 int wakeup(int PID);//wakeup进程，返回1 wakeup成功，0失败
 int suspend(int PID, v_address address);//suspend进程，返回1 suspend成功，0失败
