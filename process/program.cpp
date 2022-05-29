@@ -23,6 +23,7 @@ string getNum(int buf[3], PCB *newPCB) {
 		buf[i] = 0;
 		if (c[i] == '-') {
 			buf[0] = -1;
+			flag = 0;
 			break;
 		}
 		while (c[j]!=' '&&c[j]!=EOF&&c[j]!='\n') {
