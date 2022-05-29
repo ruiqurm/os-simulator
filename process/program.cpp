@@ -11,6 +11,8 @@ int createPID(){
 	return ++PID;
 }
 
+//样例：1 2 3 xx
+//提取上述样例的值，对应buf[0-2]，最后一个string作为返回值（有可能不存在）
 string getNum(int buf[3], PCB *newPCB) {
 	string temp = "";
 	int flag = 1;
@@ -23,16 +25,16 @@ string getNum(int buf[3], PCB *newPCB) {
 			buf[0] = -1;
 			break;
 		}
-		while (c[j]!=' '||c[j]!=EOF) {
-			buf[i]=
+		while (c[j]!=' '&&c[j]!=EOF&&c[j]!='\n') {
+			buf[i] = buf[i] * 10 + c[j] - '0';
 			j++;
 		}
-		if (c[j] == EOF)flag = 0;
+		if (c[j] == EOF || c[j] == '\n')flag = 0;
 		j++;
 	}
 	if (flag) {
-		while (c[j] != EOF) {
-			temp += c[j];
+		while (c[j] != EOF && c[j]!= '\n') {
+			temp += c[j++];
 		}
 	}
 	return temp;
@@ -103,7 +105,7 @@ int createProc(string path){//创建进程，返回1创建成功，0失败
 	int buf[3];
 	printf("%d\n", f);
 	//fscanf(newPCB.myFile, "%d%d%d", &buf[0], &buf[1], &buf[2]) == 3	 Fread(buf, sizeof(buf), newPCB.myFile)
-	if (getNum(buf,&newPCB)){ // 读取前12个字节，并把对应位置的内容写入PCB中
+	if (getNum(buf,&newPCB)!="") { // 读取前12个字节，并把对应位置的内容写入PCB中
 		newPCB.needTime = buf[0];
 		newPCB.arriveTime = nowTime;
 		newPCB.remainTime = newPCB.needTime;
