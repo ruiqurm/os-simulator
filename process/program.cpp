@@ -18,7 +18,7 @@ string getNum(int buf[3], PCB *newPCB) {
 	int flag = 1;
 	char c[1000];
 	fgets(c, newPCB->myFile);
-	j = 0;
+	int j = 0;
 	for (int i = 0; i < 3; i++) {
 		buf[i] = 0;
 		if (c[i] == '-') {
