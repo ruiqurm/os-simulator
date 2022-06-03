@@ -10,10 +10,42 @@ int nowTime = 0;//当前时间
 int createPID(){
 	return ++PID;
 }
+
+//样例：1 2 3 xx
+//提取上述样例的值，对应buf[0-2]，最后一个string作为返回值（有可能不存在）
+string getNum(int buf[3], PCB *newPCB) {
+	string temp = "";
+	int flag = 1;
+	char c[1000];
+	fgets(c, newPCB->myFile);
+	int j = 0;
+	for (int i = 0; i < 3; i++) {
+		buf[i] = 0;
+		if (c[i] == '-') {
+			buf[0] = -1;
+			flag = 0;
+			break;
+		}
+		while (c[j]!=' '&&c[j]!=EOF&&c[j]!='\n') {
+			buf[i] = buf[i] * 10 + c[j] - '0';
+			j++;
+		}
+		if (c[j] == EOF || c[j] == '\n')flag = 0;
+		j++;
+	}
+	if (flag) {
+		while (c[j] != EOF && c[j]!= '\n') {
+			temp += c[j++];
+		}
+	}
+	return temp;
+}
+
 int getCmd(PCB *newPCB) {//输入指令内容
 	int buf[3];
 	// fscanf(newPCB->myFile, "%d%d%d", &buf[0], &buf[1], &buf[2])
-	while (Fread(buf, sizeof(buf), newPCB->myFile)) {
+	while (true) {
+		newCmd.path = getNum(buf, newPCB);
 		if (buf[0] == -1)break;//当指令为-1时代表退出
 		cmd newCmd;
 		newCmd.time = buf[0];
@@ -25,8 +57,8 @@ int getCmd(PCB *newPCB) {//输入指令内容
 		case DELETE://删除文件
 			char c[1000];
 			//fgets(c, 100, newPCB->myFile);
-			fgets(c,newPCB->myFile);//读入字符串
-			newCmd.path = c;
+			//fgets(c,newPCB->myFile);//读入字符串
+			//newCmd.path = c;
 			if (newCmd.path == "")return 0;
 			newPCB->cmdStack.push(newCmd);
 			break;
@@ -58,7 +90,7 @@ int testPCB(PCB *newPCB){//测试PCB内的数据有无问题
 }
 
 // !string path
-int create(string path){//创建进程，返回1创建成功，0失败
+int createProc(string path){//创建进程，返回1创建成功，0失败
 	myFile* f = OpenFile(path,0,1);//打开进程所需的文件
 	char c[100];
 	strcpy(c, path.c_str());
@@ -73,8 +105,8 @@ int create(string path){//创建进程，返回1创建成功，0失败
 	}
 	int buf[3];
 	printf("%d\n", f);
-	//fscanf(newPCB.myFile, "%d%d%d", &buf[0], &buf[1], &buf[2]) == 3	
-	if (Fread(buf, sizeof(buf), newPCB.myFile)){ // 读取前12个字节，并把对应位置的内容写入PCB中
+	//fscanf(newPCB.myFile, "%d%d%d", &buf[0], &buf[1], &buf[2]) == 3	 Fread(buf, sizeof(buf), newPCB.myFile)
+	if (getNum(buf,&newPCB)!="") { // 读取前12个字节，并把对应位置的内容写入PCB中
 		newPCB.needTime = buf[0];
 		newPCB.arriveTime = nowTime;
 		newPCB.remainTime = newPCB.needTime;
