@@ -44,6 +44,7 @@ void iput(iNode *inode)
 	if(!inode->nlinks){ //如果引用数为1且链接数为0，说明文件已被删除，则释放i节点及数据块
 		truncate(inode);
 		free_iNode(inode);
+		inode->i_num=0;
 		return;
 	}
 	if(inode->i_dirt){ //如果引用数为1但链接数不为0，说明文件没被删除但inode不再使用，此时如果i_dirt为1则将inode写回
