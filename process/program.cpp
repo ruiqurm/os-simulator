@@ -244,7 +244,6 @@ int runCmd(PCB *runPCB) {//运行进程的指令，如无中断等情况则返�
 		case APPLY://申请设备
 			if (!acquire(runPCB->PID, nowCmd.num2)) {//如果申请设备失败
 				block(runPCB->PID);
-				return 0;
 			}
 			printf("申请设备");
 			break;
@@ -276,19 +275,21 @@ void run() {
 		PCB runPCB = readVector[0];
 		printf("running process PID：%d needTime：%d ", runPCB.PID, runPCB.remainTime);
 		readVector.erase(readVector.begin());
-		if (!runCmd(&runPCB)) {
-			runPCB.remainTime--;
-			nowTime++;
-			return;
-		}
+		runCmd(&runPCB);
 		runPCB.remainTime--;
 		if (runPCB.remainTime <= 0) {//如果已经运行结束，则结束进程，否则继续丢入栈中
 			stop(runPCB.PID,runPCB.address);
 		}
 		else {
-			readVector.insert(readVector.end(), runPCB);
+			if (runPCB.state == READY) {
+				readVector.insert(readVector.end(), runPCB);
+			}
 		}
 	}	
 	printf("\n");
 	nowTime++;
+}
+
+int main() {
+	run();
 }
