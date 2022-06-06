@@ -62,6 +62,7 @@ int testPCB(PCB* newPCB);//测试PCB内的数据有无问题
 int createProc(string path);//创建进程，返回1创建成功，0失败
 void eraseRead(int PID);//删除readVector中对应PID的PCB
 int wakeup(int PID);//wakeup进程，返回1 wakeup成功，0失败
+int block(int PID); //block进程，返回1 block成功，0失败
 int suspend(int PID, v_address address);//suspend进程，返回1 suspend成功，0失败
 int active(int PID);//active进程，返回1 active成功，0失败
 int stop(int PID, v_address address);//stop进程，返回1 stop成功，0失败
