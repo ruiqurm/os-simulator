@@ -289,7 +289,3 @@ void run() {
 	printf("\n");
 	nowTime++;
 }
-
-int main() {
-	run();
-}
