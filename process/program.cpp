@@ -243,7 +243,7 @@ int runCmd(PCB *runPCB) {//运行进程的指令，如无中断等情况则返�
 			break;
 		case APPLY://申请设备
 			if (!acquire(runPCB->PID, nowCmd.num2)) {//如果申请设备失败
-				block(runPCB->PID);
+				run->state = BLOCK;
 			}
 			printf("申请设备");
 			break;
