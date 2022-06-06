@@ -166,7 +166,7 @@ int wakeup(int PID) {//wakeup进程，返回1 wakeup成功，0失败
 
 int suspend(int PID, v_address address) {//suspend进程，返回1 suspend成功，0失败
 	if (proMap.find(PID) != proMap.end()) {
-		if (proMap[PID].state = READY) {
+		if (proMap[PID].state == READY) {
 			eraseRead(PID);
 		}
 		else if(proMap[PID].state != BLOCK) {
@@ -186,7 +186,7 @@ int suspend(int PID, v_address address) {//suspend进程，返回1 suspend成功
 
 int active(int PID) {//active进程，返回1 active成功，0失败
 	if (proMap.find(PID) != proMap.end()) {
-		if (proMap[PID].state = SUSPEND) {
+		if (proMap[PID].state == SUSPEND) {
 			if(alloc(&(proMap[PID].address), proMap[PID].size, proMap[PID].PID)) {
 				printf("内存分配失败\n");//内存分配失败	
 				return 0;
