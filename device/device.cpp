@@ -100,8 +100,8 @@ bool release(long pid, int device) {
 				allDevice[device].erase(ptr);
 				if (allDevice[device].size() != 0) { // 激活等待队列中的第一个进程
 					// EXTERNAL_1，设备号，进程号
-					raise_interupt(InteruptType::EXTERNAL_1, device, allDevice[device][0]);
-					//wakeup(allDevice[device][0]);
+					//raise_interupt(InteruptType::EXTERNAL_1, device, allDevice[device][0]);
+					wakeup(allDevice[device][0]);
 				}
 				return true;
 			}
