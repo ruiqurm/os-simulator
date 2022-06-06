@@ -135,7 +135,7 @@ int createProc(string path){//创建进程，返回1创建成功，0失败
 	return 1;
 }
 void eraseRead(int PID) {//删除readVector中对应PID的PCB
-	for (auto i = readVector.begin(); i < readVector.end(); i++) {
+	for (auto i = readVector.begin(); i != readVector.end(); i++) {
 		if (i->PID == PID) {
 			readVector.erase(i);
 			break;
