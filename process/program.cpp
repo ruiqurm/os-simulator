@@ -277,6 +277,7 @@ void run() {
 		readVector.erase(readVector.begin());
 		runCmd(&runPCB);
 		runPCB.remainTime--;
+		proMap[runPCB.PID] = runPCB;
 		if (runPCB.remainTime <= 0) {//如果已经运行结束，则结束进程，否则继续丢入栈中
 			stop(runPCB.PID,runPCB.address);
 		}
